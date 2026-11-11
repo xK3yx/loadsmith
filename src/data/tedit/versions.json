@@ -1,0 +1,524 @@
+{
+  "gameToSave": {
+    "1.0": 38,
+    "1.0.1": 2,
+    "1.0.2": 3,
+    "1.0.3": 4,
+    "1.0.4": 9,
+    "1.0.5": 12,
+    "1.0.6": 20,
+    "1.0.6.1": 22,
+    "1.1": 36,
+    "1.1.1": 37,
+    "1.1.2": 39,
+    "1.2": 67,
+    "1.2.0.1": 68,
+    "1.2.0.2": 69,
+    "1.2.0.3": 70,
+    "1.2.0.3.1": 71,
+    "1.2.1": 72,
+    "1.2.1.1": 73,
+    "1.2.1.2": 73,
+    "1.2.2": 77,
+    "1.2.3": 93,
+    "1.2.3.1": 94,
+    "1.2.4": 101,
+    "1.2.4.1": 102,
+    "1.3.0.1": 146,
+    "1.3.0.2": 147,
+    "1.3.0.3": 149,
+    "1.3.0.4": 151,
+    "1.3.0.5": 153,
+    "1.3.0.6": 154,
+    "1.3.0.7": 155,
+    "1.3.0.8": 156,
+    "1.3.1": 168,
+    "1.3.1.1": 169,
+    "1.3.2": 172,
+    "1.3.2.1": 173,
+    "1.3.3": 175,
+    "1.3.3.1": 176,
+    "1.3.3.2": 176,
+    "1.3.3.3": 177,
+    "1.3.4": 184,
+    "1.3.4.1": 185,
+    "1.3.4.2": 186,
+    "1.3.4.3": 187,
+    "1.3.4.4": 188,
+    "1.3.5": 191,
+    "1.3.5.1": 192,
+    "1.3.5.2": 193,
+    "1.3.5.3": 194,
+    "1.4.0.1": 225,
+    "1.4.0.2": 226,
+    "1.4.0.3": 227,
+    "1.4.0.4": 228,
+    "1.4.0.5": 230,
+    "1.4.1": 232,
+    "1.4.1.1": 233,
+    "1.4.1.2": 234,
+    "1.4.2": 235,
+    "1.4.2.1": 236,
+    "1.4.2.2": 237,
+    "1.4.2.3": 238,
+    "1.4.3": 242,
+    "1.4.3.1": 243,
+    "1.4.3.2": 244,
+    "1.4.3.3": 245,
+    "1.4.3.4": 246,
+    "1.4.3.5": 247,
+    "1.4.3.6": 248,
+    "1.4.4": 269,
+    "1.4.4.1": 270,
+    "1.4.4.2": 271,
+    "1.4.4.3": 272,
+    "1.4.4.4": 273,
+    "1.4.4.5": 274,
+    "1.4.4.6": 275,
+    "1.4.4.7": 276,
+    "1.4.4.8": 277,
+    "1.4.4.8.1": 278,
+    "1.4.4.9": 279,
+    "1.4.5.0": 315,
+    "1.4.5.1": 315,
+    "1.4.5.2": 315,
+    "1.4.5.3": 316,
+    "1.4.5.4": 317,
+    "1.4.5.5": 318,
+    "1.4.5.6": 319,
+    "1.4.5.7": 325,
+    "1.4.5.8": 326
+  },
+  "saveVersions": [
+    {
+      "saveVersion": 38,
+      "gameVersion": "1.0",
+      "maxItemId": 193
+    },
+    {
+      "saveVersion": 2,
+      "gameVersion": "1.0.1",
+      "maxItemId": 234
+    },
+    {
+      "saveVersion": 3,
+      "gameVersion": "1.0.2",
+      "maxItemId": 235
+    },
+    {
+      "saveVersion": 4,
+      "gameVersion": "1.0.3",
+      "maxItemId": 238
+    },
+    {
+      "saveVersion": 9,
+      "gameVersion": "1.0.4",
+      "maxItemId": 264
+    },
+    {
+      "saveVersion": 12,
+      "gameVersion": "1.0.5",
+      "maxItemId": 326
+    },
+    {
+      "saveVersion": 20,
+      "gameVersion": "1.0.6",
+      "maxItemId": 362
+    },
+    {
+      "saveVersion": 22,
+      "gameVersion": "1.0.6.1",
+      "maxItemId": 363
+    },
+    {
+      "saveVersion": 36,
+      "gameVersion": "1.1",
+      "maxItemId": 585
+    },
+    {
+      "saveVersion": 37,
+      "gameVersion": "1.1.1",
+      "maxItemId": 602
+    },
+    {
+      "saveVersion": 39,
+      "gameVersion": "1.1.2",
+      "maxItemId": 603
+    },
+    {
+      "saveVersion": 67,
+      "gameVersion": "1.2",
+      "maxItemId": 1613
+    },
+    {
+      "saveVersion": 68,
+      "gameVersion": "1.2.0.1",
+      "maxItemId": 1613
+    },
+    {
+      "saveVersion": 69,
+      "gameVersion": "1.2.0.2",
+      "maxItemId": 1614
+    },
+    {
+      "saveVersion": 70,
+      "gameVersion": "1.2.0.3",
+      "maxItemId": 1724
+    },
+    {
+      "saveVersion": 71,
+      "gameVersion": "1.2.0.3.1",
+      "maxItemId": 1724
+    },
+    {
+      "saveVersion": 72,
+      "gameVersion": "1.2.1",
+      "maxItemId": 1857
+    },
+    {
+      "saveVersion": 73,
+      "gameVersion": "1.2.1.2",
+      "maxItemId": 1866
+    },
+    {
+      "saveVersion": 77,
+      "gameVersion": "1.2.2",
+      "maxItemId": 1965
+    },
+    {
+      "saveVersion": 93,
+      "gameVersion": "1.2.3",
+      "maxItemId": 2288
+    },
+    {
+      "saveVersion": 94,
+      "gameVersion": "1.2.3.1",
+      "maxItemId": 2288
+    },
+    {
+      "saveVersion": 101,
+      "gameVersion": "1.2.4",
+      "maxItemId": 2742
+    },
+    {
+      "saveVersion": 102,
+      "gameVersion": "1.2.4.1",
+      "maxItemId": 2748
+    },
+    {
+      "saveVersion": 146,
+      "gameVersion": "1.3.0.1",
+      "maxItemId": 3600
+    },
+    {
+      "saveVersion": 147,
+      "gameVersion": "1.3.0.2",
+      "maxItemId": 3600
+    },
+    {
+      "saveVersion": 149,
+      "gameVersion": "1.3.0.3",
+      "maxItemId": 3600
+    },
+    {
+      "saveVersion": 151,
+      "gameVersion": "1.3.0.4",
+      "maxItemId": 3600
+    },
+    {
+      "saveVersion": 153,
+      "gameVersion": "1.3.0.5",
+      "maxItemId": 3601
+    },
+    {
+      "saveVersion": 154,
+      "gameVersion": "1.3.0.6",
+      "maxItemId": 3601
+    },
+    {
+      "saveVersion": 155,
+      "gameVersion": "1.3.0.7",
+      "maxItemId": 3601
+    },
+    {
+      "saveVersion": 156,
+      "gameVersion": "1.3.0.8",
+      "maxItemId": 3601
+    },
+    {
+      "saveVersion": 168,
+      "gameVersion": "1.3.1",
+      "maxItemId": 3729
+    },
+    {
+      "saveVersion": 169,
+      "gameVersion": "1.3.1.1",
+      "maxItemId": 3729
+    },
+    {
+      "saveVersion": 172,
+      "gameVersion": "1.3.2",
+      "maxItemId": 3769
+    },
+    {
+      "saveVersion": 173,
+      "gameVersion": "1.3.2.1",
+      "maxItemId": 3769
+    },
+    {
+      "saveVersion": 175,
+      "gameVersion": "1.3.3",
+      "maxItemId": 3796
+    },
+    {
+      "saveVersion": 176,
+      "gameVersion": "1.3.3.2",
+      "maxItemId": 3796
+    },
+    {
+      "saveVersion": 177,
+      "gameVersion": "1.3.3.3",
+      "maxItemId": 3796
+    },
+    {
+      "saveVersion": 184,
+      "gameVersion": "1.3.4",
+      "maxItemId": 3883
+    },
+    {
+      "saveVersion": 185,
+      "gameVersion": "1.3.4.1",
+      "maxItemId": 3883
+    },
+    {
+      "saveVersion": 186,
+      "gameVersion": "1.3.4.2",
+      "maxItemId": 3883
+    },
+    {
+      "saveVersion": 187,
+      "gameVersion": "1.3.4.3",
+      "maxItemId": 3883
+    },
+    {
+      "saveVersion": 188,
+      "gameVersion": "1.3.4.4",
+      "maxItemId": 3883
+    },
+    {
+      "saveVersion": 191,
+      "gameVersion": "1.3.5",
+      "maxItemId": 3929
+    },
+    {
+      "saveVersion": 192,
+      "gameVersion": "1.3.5.1",
+      "maxItemId": 3929
+    },
+    {
+      "saveVersion": 193,
+      "gameVersion": "1.3.5.2",
+      "maxItemId": 3929
+    },
+    {
+      "saveVersion": 194,
+      "gameVersion": "1.3.5.3",
+      "maxItemId": 3929
+    },
+    {
+      "saveVersion": 225,
+      "gameVersion": "1.4.0.1",
+      "maxItemId": 5042
+    },
+    {
+      "saveVersion": 226,
+      "gameVersion": "1.4.0.2",
+      "maxItemId": 5042
+    },
+    {
+      "saveVersion": 227,
+      "gameVersion": "1.4.0.3",
+      "maxItemId": 5042
+    },
+    {
+      "saveVersion": 228,
+      "gameVersion": "1.4.0.4",
+      "maxItemId": 5042
+    },
+    {
+      "saveVersion": 230,
+      "gameVersion": "1.4.0.5",
+      "maxItemId": 5044
+    },
+    {
+      "saveVersion": 232,
+      "gameVersion": "1.4.1",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 233,
+      "gameVersion": "1.4.1.1",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 234,
+      "gameVersion": "1.4.1.2",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 235,
+      "gameVersion": "1.4.2",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 236,
+      "gameVersion": "1.4.2.1",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 237,
+      "gameVersion": "1.4.2.2",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 238,
+      "gameVersion": "1.4.2.3",
+      "maxItemId": 5087
+    },
+    {
+      "saveVersion": 242,
+      "gameVersion": "1.4.3",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 243,
+      "gameVersion": "1.4.3.1",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 244,
+      "gameVersion": "1.4.3.2",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 245,
+      "gameVersion": "1.4.3.3",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 246,
+      "gameVersion": "1.4.3.4",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 247,
+      "gameVersion": "1.4.3.5",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 248,
+      "gameVersion": "1.4.3.6",
+      "maxItemId": 5124
+    },
+    {
+      "saveVersion": 269,
+      "gameVersion": "1.4.4",
+      "maxItemId": 5452
+    },
+    {
+      "saveVersion": 270,
+      "gameVersion": "1.4.4.1",
+      "maxItemId": 5452
+    },
+    {
+      "saveVersion": 271,
+      "gameVersion": "1.4.4.2",
+      "maxItemId": 5452
+    },
+    {
+      "saveVersion": 272,
+      "gameVersion": "1.4.4.3",
+      "maxItemId": 5452
+    },
+    {
+      "saveVersion": 273,
+      "gameVersion": "1.4.4.4",
+      "maxItemId": 5452
+    },
+    {
+      "saveVersion": 274,
+      "gameVersion": "1.4.4.5",
+      "maxItemId": 5455
+    },
+    {
+      "saveVersion": 275,
+      "gameVersion": "1.4.4.6",
+      "maxItemId": 5455
+    },
+    {
+      "saveVersion": 276,
+      "gameVersion": "1.4.4.7",
+      "maxItemId": 5455
+    },
+    {
+      "saveVersion": 277,
+      "gameVersion": "1.4.4.8",
+      "maxItemId": 5455
+    },
+    {
+      "saveVersion": 278,
+      "gameVersion": "1.4.4.8.1",
+      "maxItemId": 5455
+    },
+    {
+      "saveVersion": 279,
+      "gameVersion": "1.4.4.9",
+      "maxItemId": 5455
+    },
+    {
+      "saveVersion": 315,
+      "gameVersion": "1.4.5.0",
+      "maxItemId": 6144
+    },
+    {
+      "saveVersion": 315,
+      "gameVersion": "1.4.5.1",
+      "maxItemId": 6144
+    },
+    {
+      "saveVersion": 315,
+      "gameVersion": "1.4.5.2",
+      "maxItemId": 6144
+    },
+    {
+      "saveVersion": 316,
+      "gameVersion": "1.4.5.3",
+      "maxItemId": 6144
+    },
+    {
+      "saveVersion": 317,
+      "gameVersion": "1.4.5.4",
+      "maxItemId": 6144
+    },
+    {
+      "saveVersion": 318,
+      "gameVersion": "1.4.5.5",
+      "maxItemId": 6144
+    },
+    {
+      "saveVersion": 319,
+      "gameVersion": "1.4.5.6",
+      "maxItemId": 6146
+    },
+    {
+      "saveVersion": 325,
+      "gameVersion": "1.4.5.7",
+      "maxItemId": 6195
+    },
+    {
+      "saveVersion": 326,
+      "gameVersion": "1.4.5.8",
+      "maxItemId": 6195
+    }
+  ]
+}
