@@ -41,6 +41,8 @@ export interface Issue {
 export interface ResolvedEntry {
   item: ItemRecord
   prefix: number
+  /** Whether the loadout named a modifier (prefix 0 then means "none"). */
+  prefixGiven: boolean
   stack: number
   favorite: boolean
   path: string
@@ -211,6 +213,7 @@ class Validator {
     if (!item) return undefined
 
     let prefix = 0
+    const prefixGiven = obj.prefix !== undefined && obj.prefix !== ''
     if (obj.prefix !== undefined && obj.prefix !== '' && obj.prefix !== 0) {
       if (opts.noPrefix) {
         this.error(`${path}.prefix`, `${item.name} can't have a modifier in this slot.`)
@@ -243,7 +246,7 @@ class Validator {
     if (opts.weapon && itemKind(item, this.version).kind !== 'weapon' && !item.rackable) {
       this.warn(path, `${item.name} isn't a known weapon.`)
     }
-    return { item, prefix, stack, favorite: obj.favorite ?? false, path }
+    return { item, prefix, prefixGiven, stack, favorite: obj.favorite ?? false, path }
   }
 
   private entries(list: Entry[], path: string, opts: { weapon?: boolean }): ResolvedEntry[] {
@@ -338,7 +341,7 @@ class Validator {
         this.error(`coins.${name}`, `A coin slot holds at most ${max} ${item.name}s.`)
         continue
       }
-      out.push({ item, prefix: 0, stack: count, favorite: false, path: `coins.${name}` })
+      out.push({ item, prefix: 0, prefixGiven: false, stack: count, favorite: false, path: `coins.${name}` })
     }
     return out
   }

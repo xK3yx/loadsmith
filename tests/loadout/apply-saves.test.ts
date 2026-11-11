@@ -3,7 +3,7 @@
 // where the loadout says.
 
 import { describe, expect, it } from 'vitest'
-import { lookupItem } from '../../src/data/index.ts'
+import { itemById, itemKind, lookupItem, maxStackFor } from '../../src/data/index.ts'
 import { type PlayerCharacter, loadPlayer, parsePlayer, savePlayer, serializePlayer } from '../../src/format/index.ts'
 import { type Loadout, applyLoadout, parseLoadout, parseLoadoutText } from '../../src/loadout/index.ts'
 import { findSaves } from '../format/saves.ts'
@@ -138,6 +138,30 @@ describe.skipIf(saves.length === 0)('applyLoadout on real saves', () => {
       if (!result.ok) throw new Error(result.errors.map((e) => e.message).join('; '))
       const piggyFree = before.bank1.filter((i) => i.netId === 0).length
       expect(result.preview.redirected.length).toBe(Math.max(0, 3 - piggyFree))
+      expect(conservationErrors(before, result.character, result.preview)).toEqual([])
+      expect(await roundTrip(result.character)).toEqual(result.character)
+    })
+
+    it('moves owned weapons and accessories into place instead of adding copies', async () => {
+      const before = await loadPlayer(save.bytes)
+      const owned = (k: 'weapon' | 'accessory') =>
+        [...before.inventory.slice(10, 50), ...before.bank1, ...before.bank2, ...before.bank3, ...before.bank4].find((i) => {
+          const rec = i.netId ? itemById(i.netId) : undefined
+          return rec && itemKind(rec, before.version).kind === k && maxStackFor(rec).max === 1
+        })
+      const weapon = owned('weapon')
+      const accessory = owned('accessory')
+      if (!weapon || !accessory) return
+      const l = parseLoadout({
+        schema: 'loadsmith/1',
+        weapons: [{ item: weapon.netId }],
+        accessories: [{ item: accessory.netId }],
+      })
+      if (!l.ok) throw new Error('parse')
+      const result = apply(before, l.loadout)
+      expect(result.preview.added.filter((a) => a.id === weapon.netId || a.id === accessory.netId)).toEqual([])
+      expect(result.character.inventory[0]!.netId).toBe(weapon.netId)
+      expect(result.character.armor[3]!.netId).toBe(accessory.netId)
       expect(conservationErrors(before, result.character, result.preview)).toEqual([])
       expect(await roundTrip(result.character)).toEqual(result.character)
     })

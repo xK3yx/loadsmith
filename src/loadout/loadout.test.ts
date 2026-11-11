@@ -249,6 +249,47 @@ describe('applyLoadout', () => {
     expect(fresh.preview.warnings).toEqual([]) // didn't have it: a new slot is expected
   })
 
+  it('moves an owned weapon into the hotbar with the new modifier instead of adding a copy', () => {
+    const p = character()
+    const zenith = id('Zenith')
+    p.bank2[5] = { netId: zenith, stack: 1, prefix: 59, favorited: false } // Godly, in the Safe
+    const r = applied({ weapons: [{ item: 'Zenith', prefix: 'Legendary' }] }, p)
+    expect(r.character.inventory[0]).toMatchObject({ netId: zenith, prefix: 81 })
+    expect(r.character.bank2[5]!.netId).toBe(0)
+    expect(r.preview.added).toEqual([])
+    expect(r.preview.moved).toEqual([expect.objectContaining({ from: 'Safe slot 6', to: 'Hotbar' })])
+    expect(r.preview.reforged).toEqual([expect.objectContaining({ fromPrefixName: 'Godly', reason: 'loadout', item: expect.objectContaining({ prefixName: 'Legendary' }) })])
+    expect(r.preview.warnings).toEqual([])
+  })
+
+  it('keeps the owned modifier when the loadout names none, and prefers an exact match', () => {
+    const p = character()
+    const shield = id('Ankh Shield')
+    p.inventory[30] = { netId: shield, stack: 1, prefix: 65, favorited: false } // Warding
+    p.bank1[0] = { netId: shield, stack: 1, prefix: 72, favorited: false } // Menacing
+    const none = applied({ accessories: ['Ankh Shield'] }, p)
+    expect(none.character.armor[3]).toMatchObject({ netId: shield, prefix: 65 })
+    expect(none.character.inventory[30]!.netId).toBe(0)
+    expect(none.preview.reforged).toEqual([])
+    const exact = applied({ accessories: [{ item: 'Ankh Shield', prefix: 'Menacing' }] }, p)
+    expect(exact.character.armor[3]).toMatchObject({ netId: shield, prefix: 72 })
+    expect(exact.character.bank1[0]!.netId).toBe(0)
+    expect(exact.character.inventory[30]!.netId).toBe(shield) // the Warding one stays
+    expect(exact.preview.reforged).toEqual([])
+  })
+
+  it('reforges an item taken off when it is re-equipped elsewhere, and adds only what is not owned', () => {
+    const p = character()
+    p.inventory[0] = { netId: id('Zenith'), stack: 1, prefix: 59, favorited: false }
+    const r = applied({ weapons: ['Terraprisma', { item: 'Zenith', prefix: 'Legendary' }] }, p)
+    expect(r.character.inventory.slice(0, 2).map((i) => [i.netId, i.prefix])).toEqual([
+      [id('Terraprisma'), 0],
+      [id('Zenith'), 81],
+    ])
+    expect(r.character.inventory.filter((i) => i.netId === id('Zenith'))).toHaveLength(1)
+    expect(r.preview.added.map((a) => a.name)).toEqual(['Terraprisma'])
+  })
+
   it('replaces coin slots and keeps the old coins', () => {
     const p = character()
     p.inventory[50] = { netId: id('Gold Coin'), stack: 40, prefix: 0, favorited: false }

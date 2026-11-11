@@ -7,6 +7,8 @@
 //   1. Clear storage spaces set to "replace" (removed items are listed).
 //   2. Equipment: loadout armor and accessories, weapons into the hotbar,
 //      ammo, coins and the misc equipment slots. Replaced items are collected.
+//      A weapon or accessory the character already owns (inventory, storage,
+//      or just taken off) is moved into place instead of adding a copy.
 //   3. Place the replaced items: free main inventory, then piggy bank, safe,
 //      Defender's Forge, Void Vault. The player's own items go first.
 //   4. Storage contents (in "add" mode, overflow goes to the next space with
@@ -53,6 +55,16 @@ export interface MovedItem {
   to: string
 }
 
+/** An item whose modifier changed. item shows it after the change. */
+export interface ReforgedItem {
+  item: ItemView
+  where: string
+  fromPrefix: number
+  fromPrefixName?: string
+  /** "loadout": an owned item moved into place with the loadout's modifier. "best": the best-modifiers option. */
+  reason: 'loadout' | 'best'
+}
+
 export interface RemovedItem {
   item: ItemView
   from: string
@@ -79,6 +91,7 @@ export interface Preview {
   /** New items the loadout adds to the character. */
   added: ItemView[]
   moved: MovedItem[]
+  reforged: ReforgedItem[]
   /** Deleted by storage "replace" mode. */
   removed: RemovedItem[]
   /** Add-mode storage items placed in the next space with room. */
@@ -108,6 +121,14 @@ interface Area {
   end: number
 }
 
+interface Equipped {
+  item: PlayerItem
+  where: string
+  change: SlotChange
+  /** Set for weapons and accessories: reuse an owned copy if there is one. */
+  reuse?: ResolvedEntry
+}
+
 interface Pending {
   item: PlayerItem
   from: string
@@ -121,7 +142,9 @@ class Applier {
   private readonly preview: Preview
   private readonly displaced: Pending[] = []
   /** Single items equipped by the loadout, which may turn out to be re-equips. */
-  private readonly equipped: { item: PlayerItem; where: string }[] = []
+  private readonly equipped: Equipped[] = []
+  /** Slots the loadout wrote, which must not be taken as "already owned". */
+  private readonly written = new Set<PlayerItem>()
 
   constructor(p: PlayerCharacter, r: ResolvedLoadout, warnings: Issue[]) {
     this.p = p
@@ -131,6 +154,7 @@ class Applier {
       changes: [],
       added: [],
       moved: [],
+      reforged: [],
       removed: [],
       redirected: [],
       character: [],
@@ -175,16 +199,21 @@ class Applier {
    * Writes an equipment slot from the loadout, records the change, and
    * collects whatever was there so it can move to free space.
    */
-  private put(list: PlayerItem[], index: number, area: string, next: PlayerItem): void {
+  private put(list: PlayerItem[], index: number, area: string, next: PlayerItem, reuse?: ResolvedEntry): void {
     const old = list[index] ?? emptyItem()
-    if (old.netId === next.netId && old.prefix === next.prefix && old.stack === next.stack) {
+    // Without a modifier in the loadout, an owned item keeps its own.
+    const keepPrefix = reuse !== undefined && !reuse.prefixGiven
+    if (old.netId === next.netId && (old.prefix === next.prefix || keepPrefix) && old.stack === next.stack) {
       if (next.favorited) old.favorited = true
+      this.written.add(old)
       return
     }
     list[index] = next
-    this.preview.changes.push({ area, slot: index + 1, before: this.view(old), after: this.view(next) })
+    this.written.add(next)
+    const change: SlotChange = { area, slot: index + 1, before: this.view(old), after: this.view(next) }
+    this.preview.changes.push(change)
     if (old.netId !== 0) this.displaced.push({ item: { ...old, favorited: false }, from: `${area} slot ${index + 1}` })
-    if (next.netId !== 0) this.equipped.push({ item: next, where: area })
+    if (next.netId !== 0) this.equipped.push(reuse ? { item: next, where: area, change, reuse } : { item: next, where: area, change })
   }
 
   /**
@@ -193,7 +222,8 @@ class Applier {
    * copy. Everything else equipped counts as added.
    */
   private reconcileEquipped(): void {
-    for (const { item } of this.equipped) {
+    for (const eq of this.equipped) {
+      const { item } = eq
       const record = itemById(item.netId)
       const single = !record || maxStackFor(record).max === 1
       const match = this.displaced.findIndex(
@@ -203,8 +233,70 @@ class Applier {
         this.displaced.splice(match, 1)
         continue
       }
+      if (eq.reuse && single && this.reuseOwned(eq)) continue
       this.preview.added.push(this.view(item)!)
     }
+  }
+
+  /**
+   * Weapons and accessories: if the character owns the item (just taken off,
+   * in the inventory, or in storage), that one moves into place and gets the
+   * loadout's modifier instead of a copy being added. An owned copy with the
+   * same modifier is preferred. Without a modifier in the loadout, the owned
+   * item keeps its own.
+   */
+  private reuseOwned(eq: Equipped): boolean {
+    const { item, reuse } = eq
+    const same = (it: PlayerItem) => it.netId === item.netId && it.prefix === item.prefix
+    const any = (it: PlayerItem) => it.netId === item.netId
+
+    let owned: Pending | undefined
+    for (const test of [same, any]) {
+      const d = this.displaced.findIndex((x) => test(x.item))
+      if (d !== -1) {
+        owned = this.displaced.splice(d, 1)[0]!
+        break
+      }
+      const slot = this.findOwnedSlot(test)
+      if (slot) {
+        const it = slot.list[slot.index]!
+        slot.list[slot.index] = emptyItem()
+        this.preview.changes.push({ area: slot.label, slot: slot.index + 1, before: this.view(it), after: null })
+        owned = { item: it, from: `${slot.label} slot ${slot.index + 1}` }
+        break
+      }
+    }
+    if (!owned) return false
+
+    if (!reuse!.prefixGiven) item.prefix = owned.item.prefix
+    eq.change.after = this.view(item)
+    if (owned.item.prefix !== item.prefix) this.reforged(item, eq.where, owned.item.prefix, 'loadout')
+    this.preview.moved.push({ item: this.view(item)!, from: owned.from, to: eq.where })
+    return true
+  }
+
+  private reforged(item: PlayerItem, where: string, fromPrefix: number, reason: ReforgedItem['reason']): void {
+    const r: ReforgedItem = { item: this.view(item)!, where, fromPrefix, reason }
+    const name = fromPrefix ? prefixById(fromPrefix)?.name : undefined
+    if (name) r.fromPrefixName = name
+    this.preview.reforged.push(r)
+  }
+
+  /** An inventory or storage slot with a matching item that the loadout didn't write. */
+  private findOwnedSlot(test: (it: PlayerItem) => boolean): { list: PlayerItem[]; index: number; label: string } | undefined {
+    const areas: Area[] = [
+      { label: 'Inventory', list: this.p.inventory, start: HOTBAR.start, end: MAIN.end },
+      ...STORAGE_NAMES.map((n) => this.bank(n)),
+    ]
+    for (const area of areas) {
+      for (let i = area.start; i <= area.end; i++) {
+        const it = area.list[i]!
+        if (it.netId === 0 || this.written.has(it) || !test(it)) continue
+        const label = area.list === this.p.inventory ? (i <= HOTBAR.end ? 'Hotbar' : 'Inventory') : area.label
+        return { list: area.list, index: i, label }
+      }
+    }
+    return undefined
   }
 
   private bank(name: StorageName): Area {
@@ -323,7 +415,7 @@ class Applier {
         // The list replaces all 7 functional accessory slots; unused ones are emptied.
         for (let k = 0; k <= ACCESSORY.end - ACCESSORY.start; k++) {
           const e = set.accessories[k]
-          this.put(list, ACCESSORY.start + k, `${label} accessories`, e ? { ...this.make(e, 1), favorited: false } : emptyItem())
+          this.put(list, ACCESSORY.start + k, `${label} accessories`, e ? { ...this.make(e, 1), favorited: false } : emptyItem(), e)
         }
       }
     }
@@ -333,7 +425,10 @@ class Applier {
     const weapons = this.r.weapons
     if (!weapons) return
     weapons.forEach((e, i) => {
-      this.put(this.p.inventory, HOTBAR.start + i, 'Hotbar', this.make(e))
+      // A single weapon the character owns is moved into place (see reuseOwned).
+      const single = maxStackFor(e.item).max === 1
+      this.put(this.p.inventory, HOTBAR.start + i, 'Hotbar', this.make(e), single ? e : undefined)
+      if (single) return
       const elsewhere = this.findElsewhere(e.item.id, e.prefix, HOTBAR.start + i)
       if (elsewhere) this.warnings.push({ severity: 'warning', path: e.path, message: `${e.item.name} is already in your ${elsewhere}; this adds another.` })
     })

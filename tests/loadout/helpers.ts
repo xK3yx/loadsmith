@@ -51,6 +51,13 @@ export function itemCounts(p: PlayerCharacter): Map<string, number> {
 export function conservationErrors(before: PlayerCharacter, after: PlayerCharacter, preview: Preview): string[] {
   const expected = itemCounts(before)
   for (const a of preview.added) expected.set(`${a.id}:${a.prefix}`, (expected.get(`${a.id}:${a.prefix}`) ?? 0) + a.stack)
+  // A reforge changes one item's modifier: it moves from the old key to the new.
+  for (const r of preview.reforged) {
+    const from = `${r.item.id}:${r.fromPrefix}`
+    const to = `${r.item.id}:${r.item.prefix}`
+    expected.set(from, (expected.get(from) ?? 0) - 1)
+    expected.set(to, (expected.get(to) ?? 0) + 1)
+  }
   for (const r of preview.removed) {
     const k = `${r.item.id}:${r.item.prefix}`
     expected.set(k, (expected.get(k) ?? 0) - r.item.stack)
