@@ -1,0 +1,30 @@
+{
+  "$comment": "Consumable thrown weapons and explosives, keyed by TEdit item key. They are rackable but stack.",
+  "items": [
+    {"key":"Shuriken","name":"Shuriken"},
+    {"key":"ThrowingKnife","name":"Throwing Knife"},
+    {"key":"PoisonedKnife","name":"Poisoned Knife"},
+    {"key":"BoneJavelin","name":"Bone Javelin"},
+    {"key":"Javelin","name":"Javelin"},
+    {"key":"StarAnise","name":"Star Anise"},
+    {"key":"FrostDaggerfish","name":"Frost Daggerfish"},
+    {"key":"SpikyBall","name":"Spiky Ball"},
+    {"key":"Grenade","name":"Grenade"},
+    {"key":"StickyGrenade","name":"Sticky Grenade"},
+    {"key":"BouncyGrenade","name":"Bouncy Grenade"},
+    {"key":"Beenade","name":"Beenade"},
+    {"key":"MolotovCocktail","name":"Molotov Cocktail"},
+    {"key":"Snowball","name":"Snowball"},
+    {"key":"RottenEgg","name":"Rotten Egg"},
+    {"key":"Bomb","name":"Bomb"},
+    {"key":"StickyBomb","name":"Sticky Bomb"},
+    {"key":"BouncyBomb","name":"Bouncy Bomb"},
+    {"key":"Dynamite","name":"Dynamite"},
+    {"key":"StickyDynamite","name":"Sticky Dynamite"},
+    {"key":"BouncyDynamite","name":"Bouncy Dynamite"},
+    {"key":"ScarabBomb","name":"Scarab Bomb"},
+    {"key":"Ale","name":"Ale"},
+    {"key":"PartyGirlGrenade","name":"Happy Grenade"},
+    {"key":"BoneDagger","name":"Bone Throwing Knife"}
+  ]
+}

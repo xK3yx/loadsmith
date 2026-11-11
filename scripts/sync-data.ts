@@ -8,15 +8,38 @@
 //                and update the pin. Use `--ref master` after a Terraria update.
 //   --check      Don't write anything. Exit 1 if the files would change.
 //                Used by the weekly version check in CI.
+//
+// Items whose name changed since the last sync keep their old name as an
+// alias (src/data/rules/aliases.json) for saves older than the rename.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { DATA_FILES, TEDIT_DATA_PATH, TEDIT_REPO, formatJson, transform } from './sync-data-lib.ts'
+import type { ItemRecord, VersionsRecord } from '../src/data/types.ts'
+import {
+  DATA_FILES,
+  type DataFile,
+  type RenamedAlias,
+  TEDIT_DATA_PATH,
+  TEDIT_REPO,
+  findRenames,
+  formatJson,
+  mergeRenames,
+  transform,
+} from './sync-data-lib.ts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PIN_FILE = join(ROOT, 'scripts', 'tedit-source.json')
 const OUT_DIR = join(ROOT, 'src', 'data', 'tedit')
+const ALIASES_FILE = join(ROOT, 'src', 'data', 'rules', 'aliases.json')
+
+async function readJsonOrNull<T>(path: string): Promise<T | null> {
+  try {
+    return JSON.parse(await readFile(path, 'utf8')) as T
+  } catch {
+    return null
+  }
+}
 
 interface Pin {
   repo: string
@@ -63,19 +86,36 @@ async function main(): Promise<void> {
   const pin: Pin = ref ? await resolveRef(ref) : (JSON.parse(await readFile(PIN_FILE, 'utf8')) as Pin)
 
   const outputs = new Map<string, string>()
+  const fresh = new Map<DataFile, unknown>()
   for (const file of DATA_FILES) {
     const url = `https://raw.githubusercontent.com/${pin.repo}/${pin.commit}/${TEDIT_DATA_PATH}/${file}`
-    outputs.set(file, formatJson(transform(file, await getJson(url))))
+    const data = transform(file, await getJson(url))
+    fresh.set(file, data)
+    outputs.set(file, formatJson(data))
   }
   outputs.set('SOURCE.md', sourceMd(pin))
 
+  // Renamed items keep their old names as aliases for older saves.
+  const oldItems = await readJsonOrNull<ItemRecord[]>(join(OUT_DIR, 'items.json'))
+  const oldVersions = await readJsonOrNull<VersionsRecord>(join(OUT_DIR, 'versions.json'))
+  if (oldItems && oldVersions) {
+    const renames = findRenames(oldItems, fresh.get('items.json') as ItemRecord[])
+    for (const r of renames) console.log(`renamed: ${r.oldName} -> ${r.newName} (${r.key})`)
+    if (renames.length > 0) {
+      const until = Math.max(...oldVersions.saveVersions.map((s) => s.saveVersion))
+      const aliases = JSON.parse(await readFile(ALIASES_FILE, 'utf8')) as { renamed: RenamedAlias[] }
+      aliases.renamed = mergeRenames(aliases.renamed, renames, until)
+      outputs.set(ALIASES_FILE, `${JSON.stringify(aliases, null, 2)}\n`)
+    }
+  }
+
   let changed = 0
   for (const [file, text] of outputs) {
-    const path = join(OUT_DIR, file)
+    const path = file === ALIASES_FILE ? file : join(OUT_DIR, file)
     const old = await readFile(path, 'utf8').catch(() => null)
-    if (old === text) continue
+    if (old?.replace(/\r\n/g, '\n') === text) continue
     changed++
-    console.log(`${check ? 'would update' : 'updated'} src/data/tedit/${file}`)
+    console.log(`${check ? 'would update' : 'updated'} ${file === ALIASES_FILE ? 'src/data/rules/aliases.json' : `src/data/tedit/${file}`}`)
     if (!check) {
       await mkdir(dirname(path), { recursive: true })
       await writeFile(path, text)

@@ -17,10 +17,16 @@ export interface SaveFile {
   bytes: Uint8Array
 }
 
+/**
+ * Every .plr under a folder, except in "manual" folders. tests/local/manual/
+ * holds hand-made saves for in-game checks (for example, research counts set
+ * above the requirement on purpose), which the automated tests must ignore.
+ */
 function listPlr(dir: string): string[] {
   if (!existsSync(dir)) return []
   return readdirSync(dir, { recursive: true, encoding: 'utf8' })
     .filter((f) => f.toLowerCase().endsWith('.plr'))
+    .filter((f) => !f.split(/[\\/]/).slice(0, -1).includes('manual'))
     .sort()
 }
 

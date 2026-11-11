@@ -2,6 +2,7 @@
 // and modifier IDs each one knows. Item limits come from TEdit's
 // versions.json; modifier limits are ours (TEdit has none).
 
+import { PREFIX_RULES, appliesTo } from './rules/index.ts'
 import versionsJson from './tedit/versions.json'
 import type { VersionsRecord } from './types.ts'
 
@@ -38,12 +39,14 @@ export function maxItemId(saveVersion: number): number {
 }
 
 /**
- * Highest modifier (prefix) ID this save version knows. IDs 85-97 are the
- * 1.4.5 summon modifiers (Fabled ... Scraggling).
+ * Highest modifier (prefix) ID this save version knows, from
+ * rules/prefix-groups.json. IDs 85-97 are the 1.4.5 summon modifiers.
  */
 export function maxPrefixId(saveVersion: number): number {
   requireSupported(saveVersion)
-  return saveVersion >= FIRST_145_VERSION ? 97 : 84
+  const rule = PREFIX_RULES.maxPrefixId.find((r) => appliesTo(r, saveVersion))
+  if (!rule) throw new RangeError(`prefix-groups.json has no maxPrefixId for save version ${saveVersion}.`)
+  return rule.max
 }
 
 /** Game versions that write this save version, e.g. 315 -> ["1.4.5.0", "1.4.5.1", "1.4.5.2"]. */

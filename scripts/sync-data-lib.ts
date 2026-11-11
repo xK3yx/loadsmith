@@ -26,6 +26,7 @@ const RawItem = z.looseObject({
   legs: z.number().int().optional(),
   createTile: z.number().int().optional(),
   createWall: z.number().int().optional(),
+  wingSlot: z.number().int().optional(),
 })
 
 const RawPrefix = z.looseObject({
@@ -62,10 +63,50 @@ export function transformItems(raw: unknown): ItemRecord[] {
     if (i.isRackable) r.rackable = true
     if (i.isMount) r.mount = true
     if (i.isFood) r.food = true
+    if (i.wingSlot !== undefined) r.wings = true
     if (i.createTile !== undefined || i.createWall !== undefined) r.placeable = true
     return r
   })
   return out.sort((a, b) => a.id - b.id)
+}
+
+export interface Rename {
+  id: number
+  key: string
+  oldName: string
+  newName: string
+}
+
+/**
+ * Items whose ID and TEdit key stayed the same but whose English name changed
+ * between two syncs (1.4.5 renamed Flairon to Flairoon, for example).
+ */
+export function findRenames(oldItems: readonly ItemRecord[], newItems: readonly ItemRecord[]): Rename[] {
+  const before = new Map(oldItems.map((i) => [i.id, i]))
+  const out: Rename[] = []
+  for (const item of newItems) {
+    const old = before.get(item.id)
+    if (!old || !old.key || old.key !== item.key || old.name === item.name) continue
+    out.push({ id: item.id, key: item.key, oldName: old.name, newName: item.name })
+  }
+  return out
+}
+
+export interface RenamedAlias {
+  key: string
+  name: string
+  /** Last save version in which the old name applied. */
+  until: number
+}
+
+/** Adds renames to the alias list, skipping ones already there. */
+export function mergeRenames(existing: readonly RenamedAlias[], renames: readonly Rename[], until: number): RenamedAlias[] {
+  const out = [...existing]
+  for (const r of renames) {
+    if (out.some((a) => a.key === r.key && a.name === r.oldName)) continue
+    out.push({ key: r.key, name: r.oldName, until })
+  }
+  return out
 }
 
 export function transformPrefixes(raw: unknown): PrefixRecord[] {

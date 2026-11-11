@@ -1,0 +1,33 @@
+{
+  "$comment": "Hand-made research amounts for items missing from research.json. Source: the value stored for each item in a fully researched 1.4.5.8 Journey save (equal in the 1.4.4.9 save). UNVERIFIED in-game: see PLAN.md.",
+  "entries": [
+    {"key":"WorkBench","amount":1,"name":"Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"RichMahoganyWorkBench","amount":1,"name":"Rich Mahogany Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"PearlwoodWorkBench","amount":1,"name":"Pearlwood Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"MushroomWorkBench","amount":1,"name":"Mushroom Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SlimeWorkBench","amount":1,"name":"Slime Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"ShadewoodWorkBench","amount":1,"name":"Shadewood Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"BlueDungeonWorkBench","amount":1,"name":"Blue Dungeon Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"GreenDungeonWorkBench","amount":1,"name":"Green Dungeon Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"PinkDungeonWorkBench","amount":1,"name":"Pink Dungeon Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"ObsidianWorkBench","amount":1,"name":"Obsidian Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"PumpkinWorkBench","amount":1,"name":"Pumpkin Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SpookyWorkBench","amount":1,"name":"Spooky Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"TwinMask","amount":1,"name":"Twin Mask","why":"Wiki row is named \"Twins Mask\"; TEdit says \"Twin Mask\""},
+    {"key":"SteampunkWorkBench","amount":1,"name":"Steampunk Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"PalmWoodWorkBench","amount":1,"name":"Palm Wood Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SkywareWorkbench","amount":1,"name":"Skyware Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"MartianWorkBench","amount":1,"name":"Martian Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"MeteoriteWorkBench","amount":1,"name":"Meteorite Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SpectreBar","amount":25,"name":"Spectre Bar","why":"Wiki research field is blank"},
+    {"key":"GoldenWorkbench","amount":1,"name":"Golden Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SpiderWorkbench","amount":1,"name":"Spider Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SolarWorkbench","amount":1,"name":"Solar Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"VortexWorkbench","amount":1,"name":"Vortex Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"NebulaWorkbench","amount":1,"name":"Nebula Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"StardustWorkbench","amount":1,"name":"Stardust Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"SandstoneWorkbench","amount":1,"name":"Sandstone Work Bench","why":"Wiki research field is blank for work benches"},
+    {"key":"PinaColada","amount":5,"name":"Piña Colada","why":"TEdit names it \"Pi?a Colada\" (encoding error), so the wiki row does not match"},
+    {"key":"CoralWorkbench","amount":1,"name":"Reef Work Bench","why":"Wiki research field is blank for work benches"}
+  ]
+}

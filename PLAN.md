@@ -40,7 +40,8 @@ Port TEdit's player file reader and writer to TypeScript. Don't extend the Pytho
 - **Game data.** Copy `items.json`, `prefixes.json` and `versions.json` from TEdit's `src/TEdit.Terraria/Data/` with a `npm run sync-data` script. Rerun it after each Terraria update.
 - **Renamed items.** The sync compares item names between the old and new data. When an item ID keeps its key but changes its name (as 1.4.5 did with Flairon to Flairoon), the old name is kept automatically as an alias for saves older than the rename.
 - **Rule tables as data.** The hand-made rules (modifier groups, weapon classes, thrown consumables, stack rules, research amounts) live as version-tagged JSON in `src/data/rules/`, not in code. Each entry can carry `since` and `until` save versions (for example, summon staffs use the magic modifier pool until 314 and the summon set from 315). The code only loads, validates (zod) and interprets them, so an update usually means editing data, not logic. Milestone 2 built these as TypeScript; Milestone 3 moves them to JSON. A modifier that exists in the synced data but has no rule in our tables yet is a warning, not a block.
-- **Journey research amounts.** Full research needs the count each item requires (1 to 400 or more, by item), and TEdit's data doesn't have it. The source is the Terraria Wiki's research amounts, stored as version-tagged JSON in `src/data/rules/` and credited to the wiki. A test checks that every fully researched entry in the real Journey saves matches the table. An in-game check backs it up: a local copy of a Journey save with a few items set to exactly their required count and one set higher, to confirm which show as fully researched.
+- **Journey research amounts.** Full research needs the count each item requires (1 to 400 or more, by item), and TEdit's data doesn't have it. The source is the Terraria Wiki's research amounts, pulled from the wiki's Cargo API by `npm run sync-research` (development time only) into `src/data/rules/research.json`, credited to the wiki. Items the wiki leaves blank (work benches, Spectre Bar) and two name mismatches are in the hand-made `research-overrides.json`, taken from a fully researched Journey save. Loadsmith writes exactly the required count, never more. A test checks that every fully researched entry in the real Journey saves matches the table: 5,362 of 5,389 entries are equal, none are below it, and the one known difference is Life Crystal (saves store 13, the wiki says 10).
+- **Research is unverified.** Until an in-game check confirms the counts, full research is marked unverified in code (`RESEARCH_UNVERIFIED` in `src/data/research.ts`) and the preview warns the player. The check: load the research test save in `tests/local/manual/` (a copy of a 1.4.5.8 Journey save, never committed; the automated tests skip `manual/`), where Starcrash (1), Fallen Star Block (100), Jungle Juice (30) and Swarm Grenade (1) are set to exactly the wiki's count and Shimmerfall Block to 150 (wiki: 100), and see which show as fully researched. Also check Life Crystal. Then clear the flag and the warning.
 - **Proof it works.** Golden tests: parse then serialize each fixture with no edits, and the output must match the original byte for byte. Then a second test applies a loadout and re-parses it.
 - **Fixtures needed.** Throwaway Classic and Journey characters committed to `tests/fixtures/`, never personal characters. At least one of each in 1.4.4.9 (save version 279) and in 1.4.5.8 (326). They carry some coins of every type (so the coin stack limits are checked against real saves), and at least one is played in 1.4.5 long enough to fill the crafting-refund or dialogue lists, which are empty in every save so far. Personal saves stay in the gitignored `tests/local/`.
 - **Old saves.** Saves older than 1.4.4.9 get a message telling the player to load the character in the current game and save it once, which upgrades the file to a supported version.
@@ -87,7 +88,10 @@ One versioned format, written by the AI, read and edited by the app, and saved a
       "accessories": [{ "item": "Celestial Starboard", "prefix": "Menacing" }]
     }
   },
-  "items": [{ "item": "Super Healing Potion", "stack": 9999, "favorite": true }],
+  "items": [
+    { "item": "Super Healing Potion", "stack": 9999, "favorite": true },
+    { "item": "Rod of Harmony" }
+  ],
   "storage": {
     "piggy_bank": { "mode": "add", "items": [{ "item": "Greater Mana Potion", "stack": 9999 }] },
     "safe": { "mode": "replace", "items": [{ "item": "S.D.M.G.", "prefix": "Unreal" }] },
@@ -126,7 +130,7 @@ How the app applies it:
   - `max_life` (capped at 500) and `max_mana` (capped at 200). Higher values block the download.
   - `demon_heart` sets the extra accessory slot flag. It only does anything in Expert and Master worlds.
   - `minecart_upgrade` applies the Minecart Upgrade Kit.
-  - `journey_research: "full"` researches every item. Journey characters only; it blocks on a Classic character.
+  - `journey_research: "full"` researches every item that exists in the save's version, writing exactly the wiki's required count for each (never more; existing partial entries are raised, nothing is lowered). Journey characters only; it blocks on a Classic character. **Unverified:** the counts haven't been checked in-game yet, so the preview shows a warning until they are (see Save format).
   - `boosters` is `"all"` or a list (vital_crystal, aegis_fruit, arcane_crystal, galaxy_pearl, gummy_worm, ambrosia, artisan_loaf, torch_god).
   - Any other key that names a player flag the format layer knows (for example `used_galaxy_pearl` or `unlocked_biome_torches`) is applied too. New boosters added by a TEdit sync and a format update work without a schema change. Unknown keys block the download, with "did you mean" suggestions.
 - **Unsupported** is a list of recommendations Loadsmith can't apply, each with a reason. Nothing in it is applied; the preview shows it to the player as things to do in-game.

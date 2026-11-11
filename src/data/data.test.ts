@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DUPLICATE_NAME_PICKS, PRE_145_NAMES } from './aliases.ts'
 import {
+  ALIAS_RULES,
   ITEMS,
   PREFIXES,
   SUPPORTED_VERSIONS,
@@ -49,8 +49,8 @@ describe('data integrity', () => {
   })
 
   it('resolves every alias to a real item', () => {
-    for (const key of Object.values(DUPLICATE_NAME_PICKS)) expect(itemByKey(key), key).toBeDefined()
-    for (const { key } of Object.values(PRE_145_NAMES)) expect(itemByKey(key), key).toBeDefined()
+    for (const key of Object.values(ALIAS_RULES.duplicatePicks)) expect(itemByKey(key), key).toBeDefined()
+    for (const { key } of ALIAS_RULES.renamed) expect(itemByKey(key), key).toBeDefined()
   })
 
   it('has a decision for every name shared by several items', () => {

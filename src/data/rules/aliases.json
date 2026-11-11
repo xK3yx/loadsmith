@@ -1,0 +1,19 @@
+{
+  "$comment": "Name fixes, keyed by normalized name (lowercase letters and digits only). duplicatePicks: names TEdit gives to several items, mapped to the item a loadout almost certainly means (by TEdit key). ambiguous: shared names with no sensible default; they need an item ID. renamed: old names for saves up to and including 'until'. npm run sync-data appends to renamed automatically when an item's name changes.",
+  "duplicatePicks": {
+    "restorationpotion": "RestorationPotion",
+    "seaweed": "Seaweed",
+    "princessdress": "PrincessDressNew",
+    "junglekey": "JungleKey",
+    "corruptionkey": "CorruptionKey",
+    "crimsonkey": "CrimsonKey",
+    "hallowedkey": "HallowedKey",
+    "frozenkey": "FrozenKey",
+    "demonaltar": "DemonAltar",
+    "crimsonaltar": "CrimsonAltar"
+  },
+  "ambiguous": ["deathweedplanterbox", "strangeplant", "constellation"],
+  "renamed": [
+    { "key": "Flairon", "name": "Flairon", "until": 314 }
+  ]
+}

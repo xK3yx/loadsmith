@@ -1,31 +1,26 @@
-// Stack limits. TEdit's maxStackSize is 9999 for almost every item, including
-// weapons, armor and accessories, so Loadsmith uses its own rule:
+// Stack limits, from rules/stacks.json. TEdit's maxStackSize is 9999 for
+// almost every item, so Loadsmith uses its own rule:
 //
 //   single      armor, accessories, mounts, mapped weapons, and the pickups
 //               TEdit lists with a max of 1          -> 1
-//   coin        copper/silver/gold 100, platinum 9999  (platinum confirmed
-//               by real 1.4.5.8 saves)
-//   stackable   food, placeables, potions, ammo and other clearly stackable
-//               names, consumable thrown weapons     -> 9999, no warning
+//   coin        fixed per coin (platinum 9999 is confirmed by real saves)
+//   stackable   food, placeables, clearly stackable names, thrown
+//               consumables, and the safe-stackable list (treasure bags,
+//               materials, medals, boss summons)    -> 9999, no warning
 //   unclear     everything else                      -> 9999, with a warning
 //
 // `rackable` is not used: thrown weapons are rackable but stack.
 
 import { itemKind } from './prefixes.ts'
-import { THROWN_CONSUMABLES } from './thrown.ts'
+import { STACK_RULES } from './rules/index.ts'
 import type { ItemRecord } from './types.ts'
+import { THROWN_CONSUMABLES } from './weapons.ts'
 
-export const MAX_STACK = 9999
+export const MAX_STACK = STACK_RULES.maxStack
 
-const COIN_LIMITS: Readonly<Record<string, number>> = {
-  CopperCoin: 100,
-  SilverCoin: 100,
-  GoldCoin: 100,
-  PlatinumCoin: 9999,
-}
-
-const STACKABLE_NAME =
-  /\b(potion|flask|arrows?|bullets?|darts?|rockets?|solution|bait|seeds?|ore|bar|fragment|dye|gel|bomb|grenade|torch|ammo|feather|scale|essence|soul|shard)\b/i
+const STACKABLE_NAME = new RegExp(STACK_RULES.stackableNamePattern, 'i')
+const SAFE_KEYS = new Set(STACK_RULES.safeStackable.items.map((i) => i.key))
+const SAFE_NAMES = STACK_RULES.safeStackable.namePatterns.map((p) => new RegExp(p))
 
 export type StackBasis = 'single' | 'coin' | 'stackable' | 'unclear'
 
@@ -35,14 +30,15 @@ export interface StackLimit {
 }
 
 export function maxStackFor(item: ItemRecord): StackLimit {
-  const coin = item.key ? COIN_LIMITS[item.key] : undefined
+  const coin = item.key ? STACK_RULES.coins[item.key] : undefined
   if (coin !== undefined) return { max: coin, basis: 'coin' }
   if (itemKind(item).kind !== 'other' || item.maxStack === 1) return { max: 1, basis: 'single' }
   if (
     item.food ||
     item.placeable ||
-    (item.key !== undefined && THROWN_CONSUMABLES.has(item.key)) ||
-    STACKABLE_NAME.test(item.name)
+    (item.key !== undefined && (THROWN_CONSUMABLES.has(item.key) || SAFE_KEYS.has(item.key))) ||
+    STACKABLE_NAME.test(item.name) ||
+    SAFE_NAMES.some((re) => re.test(item.name))
   ) {
     return { max: MAX_STACK, basis: 'stackable' }
   }

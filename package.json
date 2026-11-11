@@ -12,7 +12,8 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync-data": "node scripts/sync-data.ts"
+    "sync-data": "node scripts/sync-data.ts",
+    "sync-research": "node scripts/sync-research.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
