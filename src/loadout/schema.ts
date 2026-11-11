@@ -29,7 +29,9 @@ export const Entry = z.union([ItemRef, EntryObject])
 export type Entry = z.infer<typeof Entry>
 
 export const CLASSES = ['melee', 'ranged', 'magic', 'summon', 'all-rounder'] as const
-export const WORLD_DIFFICULTIES = ['classic', 'normal', 'expert', 'master', 'journey'] as const
+/** The prompt's goal choice: "bosses" (single-target, the default) or "general". */
+export const GOALS = ['bosses', 'general'] as const
+export const WORLD_DIFFICULTIES =['classic', 'normal', 'expert', 'master', 'journey'] as const
 
 const GearSet = z.looseObject({
   class: z.string().max(40).optional(),
@@ -84,6 +86,8 @@ export const LoadoutSchema = z.looseObject({
   schema: z.literal(SCHEMA_ID),
   game_version: z.string().max(20).optional(),
   class: z.string().max(40).optional(),
+  /** What the loadout is for: bosses (single-target, the default) or general play. Informational. */
+  goal: z.enum(GOALS).optional(),
   target: z
     .looseObject({
       mode: z.enum(['classic', 'journey']).optional(),

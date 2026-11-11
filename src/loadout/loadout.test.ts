@@ -57,6 +57,8 @@ describe('parseLoadoutText', () => {
     expect(parseLoadout({ schema: 'loadsmith/1', accessories: new Array(8).fill('Ankh Shield') }).ok).toBe(false)
     expect(parseLoadout({ schema: 'loadsmith/1', items: [{ item: 'Wood', stack: 1.5 }] }).ok).toBe(false)
     expect(parseLoadout({ schema: 'loadsmith/1', storage: { safe: { mode: 'merge', items: [] } } }).ok).toBe(false)
+    expect(parseLoadout({ schema: 'loadsmith/1', goal: 'general', best_modifiers: true }).ok).toBe(true)
+    expect(parseLoadout({ schema: 'loadsmith/1', goal: 'farming' }).ok).toBe(false)
   })
 })
 

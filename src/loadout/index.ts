@@ -16,6 +16,8 @@ export {
   type ItemView,
   type MovedItem,
   type Preview,
+  type RedirectedItem,
+  type ReforgedItem,
   type RemovedItem,
   type SlotChange,
 } from './apply.ts'
