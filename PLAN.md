@@ -34,11 +34,16 @@ Port TEdit's player file reader and writer to TypeScript. Don't extend the Pytho
 - **Why TEdit.** [TEdit](https://github.com/TEdit/Terraria-Map-Editor) now has a full player editor. Its `src/TEdit.Terraria/Player/PlayerFile.cs` (about 1,000 lines) reads and writes every save version up to 326 (game 1.4.5.8), and it was updated on 10 Nov 2026.
 - **Why offsets break.** 1.4.5 inserts new fields early in the file: a team byte (save version 283+), a reserved flag between the boosters (324+), favorite flags on armor and dye slots (322+), and crafting refunds and dialogue lists (300+, 310+). Everything after them shifts.
 - **Approach.** Full parse into a typed `PlayerCharacter` object, edit the object, serialize the whole thing back. Every version check in `PlayerFile.cs` gets ported as-is.
+- **Stay mappable to TEdit.** Keep `src/format/` structured line for line like TEdit's player code: same functions, same order, same version checks, with Loadsmith's changes marked in comments. A change to TEdit's code then maps directly onto ours.
+- **Format doc.** `docs/save-format.md` describes the `.plr` format as we understand it (encryption, header, every field with the save versions that have it), so the project doesn't depend on TEdit continuing to exist.
 - **Encryption.** AES-128-CBC. Key and IV are both the UTF-16LE bytes of `h3y_gUyZ`, with PKCS7 padding.
 - **Game data.** Copy `items.json`, `prefixes.json` and `versions.json` from TEdit's `src/TEdit.Terraria/Data/` with a `npm run sync-data` script. Rerun it after each Terraria update.
-- **Rule tables as data.** The hand-made rules (modifier groups, weapon classes, thrown consumables, stack rules) live as version-tagged JSON in `src/data/rules/`, not in code. Each entry can carry `since` and `until` save versions (for example, summon staffs use the magic modifier pool until 314 and the summon set from 315). The code only loads, validates (zod) and interprets them, so an update usually means editing data, not logic. Milestone 2 built these as TypeScript; Milestone 3 moves them to JSON.
+- **Renamed items.** The sync compares item names between the old and new data. When an item ID keeps its key but changes its name (as 1.4.5 did with Flairon to Flairoon), the old name is kept automatically as an alias for saves older than the rename.
+- **Rule tables as data.** The hand-made rules (modifier groups, weapon classes, thrown consumables, stack rules, research amounts) live as version-tagged JSON in `src/data/rules/`, not in code. Each entry can carry `since` and `until` save versions (for example, summon staffs use the magic modifier pool until 314 and the summon set from 315). The code only loads, validates (zod) and interprets them, so an update usually means editing data, not logic. Milestone 2 built these as TypeScript; Milestone 3 moves them to JSON. A modifier that exists in the synced data but has no rule in our tables yet is a warning, not a block.
+- **Journey research amounts.** Full research needs the count each item requires (1 to 400 or more, by item), and TEdit's data doesn't have it. The source is the Terraria Wiki's research amounts, stored as version-tagged JSON in `src/data/rules/` and credited to the wiki. A test checks that every fully researched entry in the real Journey saves matches the table. An in-game check backs it up: a local copy of a Journey save with a few items set to exactly their required count and one set higher, to confirm which show as fully researched.
 - **Proof it works.** Golden tests: parse then serialize each fixture with no edits, and the output must match the original byte for byte. Then a second test applies a loadout and re-parses it.
-- **Fixtures needed.** At least one Classic and one Journey save in 1.4.4.9 (save version 279) and in 1.4.5.8 (326). Make throwaway test characters for the public repo rather than committing personal characters.
+- **Fixtures needed.** Throwaway Classic and Journey characters committed to `tests/fixtures/`, never personal characters. At least one of each in 1.4.4.9 (save version 279) and in 1.4.5.8 (326). They carry some coins of every type (so the coin stack limits are checked against real saves), and at least one is played in 1.4.5 long enough to fill the crafting-refund or dialogue lists, which are empty in every save so far. Personal saves stay in the gitignored `tests/local/`.
+- **Old saves.** Saves older than 1.4.4.9 get a message telling the player to load the character in the current game and save it once, which upgrades the file to a supported version.
 - **License.** TEdit is MS-PL. A port is a derivative, so its source must stay MS-PL with the notice kept. The simplest option is MS-PL for the whole repo, credited to TEdit in the README.
 
 ## Loadout JSON
@@ -142,10 +147,11 @@ The prompt is a template in the repo (`prompt/loadout-prompt.md`). The app fills
 6. Put anything it recommends that a character file can't hold (bosses, NPC upgrades, the Peddler's Satchel, world difficulty) in `unsupported`, with a reason.
 7. Return one JSON code block in the `loadsmith/1` format, with reasoning only in `notes`.
 8. Say in `notes` which version it researched, so the app can warn if that's older than the save.
+9. Cite a source in `notes` for each pick (a wiki page or guide URL), so the player can check the reasoning.
 
 The class choice is melee, ranged, magic, summon or **all-rounder**. All-rounder fills loadouts 1, 2 and 3 with three different class builds and stocks storage with weapons, ammo and consumables for all three.
 
-Players without a search-enabled AI still get a usable loadout, but older. The version check in step 8 is what catches that.
+Players without a search-enabled AI still get a usable loadout, but older. The version check in step 8 and the sources in step 9 are what catch that.
 
 ## Caveats and how we handle them
 
@@ -154,13 +160,14 @@ The app never trusts the AI or the data blindly. Anything that could break a sav
 | Risk | What goes wrong | Handling |
 | --- | --- | --- |
 | Invented or misspelled names | AI writes "Celestial Shield" | Check against items.json, suggest the closest match, block download until fixed |
-| Wrong modifier for the item | Legendary on a gun | TEdit data has no weapon class. Keep a small hand-made class map for endgame weapons; warn (don't block) for unmapped items |
+| Wrong modifier for the item | Legendary on a gun | TEdit data has no weapon class. Keep a small hand-made class map for endgame weapons; warn (don't block) for unmapped items, and for modifiers that exist in the synced data but have no rule yet |
 | Modifier newer than the save | Fabled (1.4.5) in a 1.4.4.9 save | Block. Prefix IDs 85 and up are 1.4.5-only, so they need a 1.4.5 save version |
 | Item newer than the save | A 1.4.5 item in a 1.4.4.9 save | Block, using per-version item ID limits |
-| Bad stack sizes | TEdit lists 9,999 for almost every item, Zenith included | Loadsmith's own rule, not TEdit's maxStackSize or rackable flag: 1 for armor, accessories, mounts and weapons in the class table; 100 for copper, silver and gold coins and 9,999 for platinum (confirmed by real saves); 9,999 for food, placeables, potions, ammo and consumable thrown weapons; anything else up to 9,999 with a warning. A real-save test checks the rule never rejects a stack the game itself saved |
+| Bad stack sizes | TEdit lists 9,999 for almost every item, Zenith included | Loadsmith's own rule, not TEdit's maxStackSize or rackable flag: 1 for armor, accessories, mounts and weapons in the class table; 100 for copper, silver and gold coins and 9,999 for platinum (confirmed by real saves); 9,999 for food, placeables, potions, ammo and consumable thrown weapons; 9,999 for a "safe stackable" category (treasure bags, crafting materials, medals such as Defender Medals); anything else up to 9,999 with a warning, so warnings only appear for truly unclear items. A real-save test checks the rule never rejects a stack the game itself saved |
 | More accessories than slots | 7th slot does nothing outside Master worlds | Ask world difficulty up front, warn on mismatch |
 | Corrupted save | Character won't load | Golden round-trip tests; download as a new file, never overwrite; tell players to keep a backup |
-| Unknown newer save version | Terraria 1.4.5.9 ships | Read-only view and a clear "not supported yet" message; a weekly GitHub Action checks TEdit's versions.json and opens an issue |
+| Unknown newer save version | Terraria 1.4.5.9 ships | Read-only view and a clear "not supported yet" message; the weekly GitHub Action syncs TEdit's data, runs the tests and opens a pull request with the update |
+| Older save version | A save from before 1.4.4.9 | Tell the player to load the character in the current game and save it once, then try again |
 | Steam Cloud characters | Player can't find the file | Instructions for the local Players folder and the Steam Cloud folder |
 | tModLoader characters | Modded data lives in a separate .tplr | Out of scope for v1; say so on the page |
 | Multiplayer | Servers with server-side characters ignore local files | Note that it's for single-player and friends' worlds |
@@ -175,34 +182,40 @@ Build in this order. Each milestone ends with passing tests, so a broken save fo
 
 1. **Format core.** Port TEdit's `PlayerFile.cs`, `PlayerCharacter.cs`, `PlayerItem.cs` and `PlayerConstants.cs` to `src/format/`, plus Web Crypto encrypt/decrypt. Done when every fixture round-trips byte for byte in Vitest.
 2. **Game data.** `npm run sync-data` pulls TEdit's JSON into `src/data/`. Add name lookup, fuzzy matching, per-version item and prefix limits, and the weapon class map.
-3. **Loadout engine.** zod schema for the full `loadsmith/1` (every section above, including storage modes, loadouts 2 and 3, equipment, ammo and coins, hotbar and favorites, character and `unsupported`), a validator that returns errors and warnings, and `applyLoadout(character, loadout)` that also returns a preview of every change and every removed item. Move the Milestone 2 rule tables to version-tagged JSON. Test it on every fixture.
-4. **UI.** The four screens: load, prompt builder, paste and edit table, preview and download. The preview lists replaced and removed items and the `unsupported` recommendations. Everything stays in the browser.
+3. **Loadout engine.** zod schema for the full `loadsmith/1` (every section above, including storage modes, loadouts 2 and 3, equipment, ammo and coins, hotbar and favorites, character and `unsupported`), a validator that returns errors and warnings, and `applyLoadout(character, loadout)` that also returns a preview of every change and every removed item. Move the Milestone 2 rule tables to version-tagged JSON, add the "safe stackable" category and the research amounts table, make the sync keep renamed items' old names as aliases, and write `docs/save-format.md`. Test it on every fixture.
+4. **UI.** The four screens: load, prompt builder, paste and edit table, preview and download. The preview lists replaced and removed items and the `unsupported` recommendations. Saves older than 1.4.4.9 get the "load and save it once in the current game" message. Everything stays in the browser.
 5. **Prompt and examples.** `prompt/loadout-prompt.md` asking for every section, plus example loadouts in `examples/` for each class and for all-rounder in 1.4.5.8, checked by the validator in CI.
-6. **Ship.** GitHub Actions for tests and Pages deploy, the weekly version-check workflow, README with a credit to TEdit, MS-PL license, and the not-affiliated note.
+6. **Ship.** GitHub Actions for tests and Pages deploy, the weekly update workflow, README with a credit to TEdit, MS-PL license, and the not-affiliated note. The weekly workflow runs `npm run sync-data -- --ref master` and `npm test`, and when the data changed it opens a pull request with the updated data and the test results. The pull request also:
+   - lists weapons added since the last sync that aren't in the weapon class table,
+   - lists modifiers in the synced data with no rule in our tables yet,
+   - shows items renamed since the last sync (already kept as aliases by the sync),
+   - flags any change to TEdit's player save code (`src/TEdit.Terraria/Player/` and `CreativePowers.cs`) since the commit our port is based on, with the diff, so it can be ported to `src/format/`.
 
 Work one milestone at a time: plan it, show the plan for review, then build.
 
 ## After each Terraria update
 
-1. Run `npm run sync-data -- --ref master` and review the diff in `src/data/tedit/`. Raise the supported version range if there's a new save version.
-2. Re-save the test characters in the new version: the throwaway fixtures in `tests/fixtures/`, plus local saves in `tests/local/`.
-3. Run `npm test`, including the golden round trips and the real-save tests. If a rule rejects anything the game itself saved, fix the rule table, not the test.
-4. Update the rule tables for anything new: modifier groups and the per-version modifier limit, weapon classes for new endgame weapons, thrown consumables, and pre-update names for renamed items.
-5. Fill the gaps that example loadouts and players list under `unsupported`, where the character file can hold them.
-6. Regenerate the example loadouts and check the prompt still produces valid `loadsmith/1`.
+1. Run `npm run sync-data -- --ref master` (or review the weekly workflow's pull request) and review the diff in `src/data/tedit/`. Raise the supported version range if there's a new save version.
+2. Check whether TEdit's player save code changed since the commit our port is based on. If it did, port the diff to `src/format/` (same structure, line for line) and update `docs/save-format.md`.
+3. Re-save the test characters in the new version: the throwaway fixtures in `tests/fixtures/` (Classic and Journey, with coins of every type) and the local saves in `tests/local/`. Commit the new fixtures.
+4. Run `npm test`, including the golden round trips and the real-save tests. If a rule rejects anything the game itself saved, fix the rule table, not the test.
+5. Update the rule tables for anything new: modifier groups and the per-version modifier limit, weapon classes for new endgame weapons, thrown consumables and safe stackables, and research amounts for new items. Check the renamed items the sync kept as aliases.
+6. Fill the gaps that example loadouts and players list under `unsupported`, where the character file can hold them.
+7. Regenerate the example loadouts and check the prompt still produces valid `loadsmith/1`.
 
 ## Open questions
 
 - [x] **Name and repo.** Decided: Loadsmith, repo xK3yx/loadsmith, schema loadsmith/1.
-- [ ] **Fixtures.** Throwaway Classic and Journey characters, each saved once in 1.4.4.9 and once in 1.4.5.8. This needs a 1.4.4.9 install, for example through Steam's beta branches if it's offered.
+- [ ] **Fixtures.** Throwaway Classic and Journey characters, each saved once in 1.4.4.9 and once in 1.4.5.8, with coins of every type, and one played in 1.4.5 long enough to fill the crafting-refund or dialogue lists. This needs a 1.4.4.9 install, for example through Steam's beta branches if it's offered.
 - [ ] **Modifier checking.** Hand-made class map for endgame weapons (planned), or use the wiki's per-item modifier lists? The wiki is CC BY-NC-SA, which fits a free project but mixes licenses in the repo.
 - [ ] **Character creation.** Patch existing characters only (planned for v1), or also start from a bundled blank character later?
-- [ ] **Full Journey research.** The save stores each researched item's TEdit key with the count it needs, and the counts vary from 1 to 400 by item. TEdit's data has no table of those counts. Possible sources: a fully researched throwaway Journey character, or a data file outside TEdit (check its license).
+- [x] **Full Journey research.** Decided: research amounts come from the Terraria Wiki, stored as version-tagged JSON and checked against real Journey saves (see Save format). The amounts are game facts; the wiki is credited as the source.
 
 ## Sources
 
 - [TEdit repository (MS-PL)](https://github.com/TEdit/Terraria-Map-Editor): `PlayerFile.cs`, `Data/items.json`, `Data/prefixes.json`, `Data/versions.json`, checked 11 Nov 2026
 - [MS-PL license text](https://opensource.org/licenses/MS-PL)
 - [1.4.5.0 changelog (Terraria Wiki)](https://terraria.wiki.gg/wiki/1.4.5.0)
+- [Journey Mode research (Terraria Wiki)](https://terraria.wiki.gg/wiki/Journey_Mode#Research): per-item research amounts
 - [1.4.5 summon modifiers (PCGamesN)](https://www.pcgamesn.com/terraria/1-4-5-update-summoner-weapon-reforge)
 - [Terrasavr](https://yal.cc/r/terrasavr/), the existing browser editor this improves on
