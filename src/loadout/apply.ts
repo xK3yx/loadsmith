@@ -15,7 +15,7 @@
 //      room), then "items" (merged into existing stacks first).
 //   5. Hotbar order, then the character section.
 
-import { type ItemRecord, fullResearch, itemById, maxStackFor, prefixById } from '../data/index.ts'
+import { type ItemRecord, bestPrefixFor, fullResearch, itemById, itemKind, maxStackFor, prefixById } from '../data/index.ts'
 import { type PlayerCharacter, type PlayerItem, emptyItem } from '../format/index.ts'
 import type { Loadout, StorageName } from './schema.ts'
 import { STORAGE_NAMES } from './schema.ts'
@@ -145,6 +145,8 @@ class Applier {
   private readonly equipped: Equipped[] = []
   /** Slots the loadout wrote, which must not be taken as "already owned". */
   private readonly written = new Set<PlayerItem>()
+  /** Items placed with a modifier the loadout named, which best_modifiers keeps. */
+  private readonly explicit = new Set<PlayerItem>()
 
   constructor(p: PlayerCharacter, r: ResolvedLoadout, warnings: Issue[]) {
     this.p = p
@@ -176,6 +178,7 @@ class Applier {
     this.storage()
     this.items()
     this.hotbarOrder()
+    if (this.r.bestModifiers) this.bestModifiers()
     this.character()
     if (this.errors.length > 0) return { ok: false, errors: this.errors, warnings: this.warnings }
     return { ok: true, character: this.p, preview: this.preview }
@@ -206,10 +209,12 @@ class Applier {
     if (old.netId === next.netId && (old.prefix === next.prefix || keepPrefix) && old.stack === next.stack) {
       if (next.favorited) old.favorited = true
       this.written.add(old)
+      if (reuse?.prefixGiven) this.explicit.add(old)
       return
     }
     list[index] = next
     this.written.add(next)
+    if (reuse?.prefixGiven) this.explicit.add(next)
     const change: SlotChange = { area, slot: index + 1, before: this.view(old), after: this.view(next) }
     this.preview.changes.push(change)
     if (old.netId !== 0) this.displaced.push({ item: { ...old, favorited: false }, from: `${area} slot ${index + 1}` })
@@ -533,6 +538,7 @@ class Applier {
   }
 
   private favorite(e: ResolvedEntry, placed: { area: Area; index: number }[]): void {
+    if (e.prefixGiven) for (const pl of placed) this.explicit.add(pl.area.list[pl.index]!)
     if (!e.favorite) return
     for (const pl of placed) {
       // Favorites are stored for the inventory and the Void Vault only.
@@ -565,7 +571,9 @@ class Applier {
         this.preview.changes.push({ area: 'Hotbar', slot: target + 1, before: this.view(a), after: this.view(b) })
         this.preview.changes.push({ area: source.label, slot: source.index + 1, before: this.view(b), after: this.view(a) })
         inv[target] = b
-        source.list[source.index] = { ...a, favorited: a.favorited && keepsFavorite }
+        const swapped = { ...a, favorited: a.favorited && keepsFavorite }
+        if (this.explicit.has(a)) this.explicit.add(swapped)
+        source.list[source.index] = swapped
       }
       locked.add(target)
     })
@@ -582,6 +590,51 @@ class Applier {
       if (k !== -1) return { list: area.list, index: k, label: area.label }
     }
     return undefined
+  }
+
+  /**
+   * The best_modifiers option: every weapon and accessory the character owns
+   * (inventory, storage, all three loadouts, vanity slots included) gets the
+   * best modifier for its type in this save version. Game updates can reset
+   * or downgrade modifiers on items a loadout never mentions, so this covers
+   * everything. Modifiers the loadout named are kept. Each change is listed
+   * in preview.reforged.
+   */
+  private bestModifiers(): void {
+    const v = this.p.version
+    const areas: { label: string; list: PlayerItem[]; slotLabel?: (i: number) => string }[] = [
+      { label: 'Inventory', list: this.p.inventory, slotLabel: (i) => (i <= HOTBAR.end ? 'Hotbar' : 'Inventory') },
+      ...STORAGE_NAMES.map((n) => ({ label: STORAGE_LABEL[n], list: this.p[STORAGE_FIELD[n]] })),
+      ...([1, 2, 3] as const).map((n) => ({ label: `Loadout ${n} equipment`, list: loadoutArmor(this.p, n) })),
+    ]
+    const unknown = new Set<string>()
+    for (const area of areas) {
+      area.list.forEach((it, i) => {
+        if (it.netId === 0 || it.stack !== 1 || this.explicit.has(it)) return
+        const record = itemById(it.netId)
+        if (!record) return
+        const best = bestPrefixFor(record, v)
+        if (best === undefined) {
+          // A modifier on an item with no rule means a weapon type we don't know yet.
+          if (it.prefix !== 0 && itemKind(record, v).kind === 'other') unknown.add(record.name)
+          return
+        }
+        if (maxStackFor(record).max !== 1 || it.prefix === best) return
+        const where = area.slotLabel?.(i) ?? area.label
+        const before = this.view(it)
+        const from = it.prefix
+        it.prefix = best
+        this.preview.changes.push({ area: where, slot: i + 1, before, after: this.view(it) })
+        this.reforged(it, where, from, 'best')
+      })
+    }
+    if (unknown.size > 0) {
+      this.warnings.push({
+        severity: 'warning',
+        path: 'best_modifiers',
+        message: `Not reforged, because Loadsmith doesn't know their weapon type yet: ${[...unknown].sort().join(', ')}.`,
+      })
+    }
   }
 
   private character(): void {

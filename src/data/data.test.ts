@@ -6,6 +6,10 @@ import {
   SUPPORTED_VERSIONS,
   THROWN_CONSUMABLES,
   WEAPON_CLASSES,
+  type WeaponClass,
+  allowedPrefixIds,
+  appliesTo,
+  bestPrefixFor,
   checkPrefix,
   checkStack,
   displayName,
@@ -17,9 +21,11 @@ import {
   maxPrefixId,
   maxStackFor,
   normalizeName,
+  prefixById,
   prefixCategory,
   saveVersionFor,
 } from './index.ts'
+import { BEST_PREFIX_RULES } from './rules/index.ts'
 import type { ItemRecord } from './types.ts'
 
 const item = (name: string): ItemRecord => {
@@ -310,5 +316,33 @@ describe('stacks', () => {
     expect(checkStack(item('Wooden Arrow'), 0)).toMatchObject({ ok: false, severity: 'error' })
     expect(checkStack(item('Wooden Arrow'), 1.5)).toMatchObject({ ok: false, severity: 'error' })
     expect(checkStack(item('Super Healing Potion'), 9999)).toEqual({ ok: true, stack: 9999 })
+  })
+})
+
+describe('best modifiers', () => {
+  it('every best modifier is one its type can roll, in every supported version', () => {
+    const bad: string[] = []
+    for (const v of SUPPORTED_VERSIONS) {
+      for (const [type, rules] of Object.entries(BEST_PREFIX_RULES)) {
+        const rule = rules.find((r) => appliesTo(r, v))
+        if (!rule) {
+          bad.push(`${type} @${v}: no rule`)
+          continue
+        }
+        const ok = type === 'accessory' ? prefixCategory(rule.prefix) === 'accessory' : allowedPrefixIds(type as WeaponClass, v).has(rule.prefix)
+        if (!ok || rule.prefix > maxPrefixId(v)) bad.push(`${type} @${v}: ${rule.prefix}`)
+        if (rule.name && prefixById(rule.prefix)?.name !== rule.name) bad.push(`${type}: ${rule.prefix} is not ${rule.name}`)
+      }
+    }
+    expect(bad).toEqual([])
+  })
+
+  it('picks by item type and version', () => {
+    const get = (key: string, v: number) => bestPrefixFor(itemByKey(key)!, v)
+    expect(get('Zenith', 326)).toBe(81)
+    expect(get('EmpressBlade', 279)).toBe(57)
+    expect(get('EmpressBlade', 326)).toBe(85)
+    expect(get('AnkhShield', 326)).toBe(72)
+    expect(get('SolarFlareHelmet', 326)).toBeUndefined()
   })
 })

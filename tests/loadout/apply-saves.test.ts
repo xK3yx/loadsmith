@@ -166,6 +166,21 @@ describe.skipIf(saves.length === 0)('applyLoadout on real saves', () => {
       expect(await roundTrip(result.character)).toEqual(result.character)
     })
 
+    it('best_modifiers reforges everything owned, adds up, and is stable', async () => {
+      const before = await loadPlayer(save.bytes)
+      const l = parseLoadout({ schema: 'loadsmith/1', best_modifiers: true })
+      if (!l.ok) throw new Error('parse')
+      const result = apply(before, l.loadout)
+      expect(result.preview.added).toEqual([])
+      expect(result.preview.reforged.every((r) => r.reason === 'best' && r.item.prefix !== r.fromPrefix)).toBe(true)
+      expect(result.preview.reforged.length).toBe(result.preview.changes.length)
+      expect(conservationErrors(before, result.character, result.preview)).toEqual([])
+      expect(await roundTrip(result.character)).toEqual(result.character)
+      // Running it again changes nothing.
+      const again = apply(result.character, l.loadout)
+      expect(again.preview.changes).toEqual([])
+    })
+
     it('merges items into existing stacks before using new slots', async () => {
       const before = await loadPlayer(save.bytes)
       // Find a stackable item the character has with room left in its stack.

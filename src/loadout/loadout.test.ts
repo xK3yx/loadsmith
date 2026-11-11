@@ -290,6 +290,47 @@ describe('applyLoadout', () => {
     expect(r.preview.added.map((a) => a.name)).toEqual(['Terraprisma'])
   })
 
+  it('best_modifiers reforges every owned weapon and accessory and lists each change', () => {
+    const p = character()
+    p.inventory[3] = { netId: id('Zenith'), stack: 1, prefix: 59, favorited: false } // Godly
+    p.bank4[0] = { netId: id('S.D.M.G.'), stack: 1, prefix: 0, favorited: false }
+    p.bank1[2] = { netId: id('Terraprisma'), stack: 1, prefix: 57, favorited: false } // Ruthless: pre-1.4.5 best
+    p.loadouts[1]!.armor[3] = { netId: id('Ankh Shield'), stack: 1, prefix: 65, favorited: false } // loadout 2, Warding
+    p.armor[13] = { netId: id('Celestial Shell'), stack: 1, prefix: 0, favorited: false } // vanity accessory
+    p.inventory[20] = { netId: id('Nebula Blaze'), stack: 1, prefix: 83, favorited: false } // already Mythical
+    p.inventory[21] = { netId: id('Solar Flare Helmet'), stack: 1, prefix: 0, favorited: false } // armor: no modifier
+    const r = applied({ best_modifiers: true }, p)
+    const c = r.character
+    expect([c.inventory[3]!.prefix, c.bank4[0]!.prefix, c.bank1[2]!.prefix, c.loadouts[1]!.armor[3]!.prefix, c.armor[13]!.prefix]).toEqual([81, 82, 85, 72, 72])
+    expect(c.inventory[20]!.prefix).toBe(83)
+    expect(c.inventory[21]!.prefix).toBe(0)
+    expect(r.preview.reforged.map((x) => [x.item.name, x.fromPrefixName ?? null, x.item.prefixName, x.where, x.reason])).toEqual([
+      ['Zenith', 'Godly', 'Legendary', 'Hotbar', 'best'],
+      ['Terraprisma', 'Ruthless', 'Fabled', 'Piggy Bank', 'best'],
+      ['S.D.M.G.', null, 'Unreal', 'Void Vault', 'best'],
+      ['Celestial Shell', null, 'Menacing', 'Loadout 1 equipment', 'best'],
+      ['Ankh Shield', 'Warding', 'Menacing', 'Loadout 2 equipment', 'best'],
+    ])
+    expect(parsePlayer(serializePlayer(c))).toEqual(c)
+  })
+
+  it('best_modifiers keeps modifiers the loadout names and follows the save version', () => {
+    const p = character(279)
+    p.bank1[0] = { netId: id('Terraprisma', 279), stack: 1, prefix: 83, favorited: false }
+    const r = applied({ best_modifiers: true, weapons: [{ item: 'Zenith', prefix: 'Godly' }], accessories: [{ item: 'Ankh Shield', prefix: 'Warding' }] }, p)
+    expect(r.character.inventory[0]!.prefix).toBe(59) // named in the loadout: kept
+    expect(r.character.armor[3]!.prefix).toBe(65)
+    expect(r.character.bank1[0]!.prefix).toBe(57) // summon staff before 1.4.5: Ruthless, not Fabled
+  })
+
+  it('best_modifiers warns about modified items whose weapon type is unknown', () => {
+    const p = character()
+    p.inventory[10] = { netId: id('Copper Pickaxe'), stack: 1, prefix: 1, favorited: false }
+    const r = applied({ best_modifiers: true }, p)
+    expect(r.character.inventory[10]!.prefix).toBe(1)
+    expect(r.preview.warnings).toEqual([expect.objectContaining({ path: 'best_modifiers', message: expect.stringMatching(/Copper Pickaxe/) })])
+  })
+
   it('replaces coin slots and keeps the old coins', () => {
     const p = character()
     p.inventory[50] = { netId: id('Gold Coin'), stack: 40, prefix: 0, favorited: false }

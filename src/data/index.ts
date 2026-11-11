@@ -5,6 +5,7 @@ export { ITEMS, displayName, itemById, itemByKey, itemExistsIn, lookupItem, type
 export {
   PREFIXES,
   allowedPrefixIds,
+  bestPrefixFor,
   checkPrefix,
   itemKind,
   lookupPrefix,

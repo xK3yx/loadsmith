@@ -1,0 +1,16 @@
+{
+  "$comment": "The best modifier for each item type, used by the loadout's best_modifiers option. Keys are weapon classes from weapon-classes.json, plus accessory. Each must be a modifier that type can roll in that save version (a test checks this against prefix-groups.json). Picks follow the Terraria Wiki's Modifiers pages (checked Nov 2026): Legendary for melee weapons and whips (whips use melee modifiers, not summon ones), Godly for melee weapons without size modifiers (yoyos, spears, flails, boomerangs), the Terrarian's own Legendary, Unreal for ranged, Mythical for magic, Ruthless for summon staffs before 1.4.5 (minions can't crit, so the crit in Mythical is wasted), Fabled for summon staffs from 1.4.5, and Menacing for accessories.",
+  "best": {
+    "melee": [{ "prefix": 81, "name": "Legendary" }],
+    "whip": [{ "prefix": 81, "name": "Legendary" }],
+    "melee-universal": [{ "prefix": 59, "name": "Godly" }],
+    "terrarian": [{ "prefix": 84, "name": "Legendary" }],
+    "ranged": [{ "prefix": 82, "name": "Unreal" }],
+    "magic": [{ "prefix": 83, "name": "Mythical" }],
+    "summon": [
+      { "until": 314, "prefix": 57, "name": "Ruthless" },
+      { "since": 315, "prefix": 85, "name": "Fabled" }
+    ],
+    "accessory": [{ "prefix": 72, "name": "Menacing" }]
+  }
+}

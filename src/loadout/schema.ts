@@ -108,6 +108,12 @@ export const LoadoutSchema = z.looseObject({
     .looseObject(Object.fromEntries(STORAGE_NAMES.map((s) => [s, Storage.optional()])) as Record<StorageName, z.ZodOptional<typeof Storage>>)
     .optional(),
   character: Character.optional(),
+  /**
+   * Reforge every weapon and accessory the character owns (inventory, storage,
+   * all loadouts) to the best modifier for its type and save version.
+   * Modifiers the loadout names itself are kept.
+   */
+  best_modifiers: z.boolean().optional(),
   unsupported: z.array(Unsupported).max(100).optional(),
   notes: z.string().max(50_000).optional(),
 })

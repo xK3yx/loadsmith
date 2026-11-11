@@ -2,7 +2,7 @@
 // live in rules/prefix-groups.json (from the Terraria Wiki's Modifiers page).
 
 import { type Suggestion, normalizeName, suggest } from './fuzzy.ts'
-import { PREFIX_RULES, appliesTo } from './rules/index.ts'
+import { BEST_PREFIX_RULES, PREFIX_RULES, appliesTo } from './rules/index.ts'
 import prefixesJson from './tedit/prefixes.json'
 import type { ItemRecord, PrefixRecord } from './types.ts'
 import { maxPrefixId } from './versions.ts'
@@ -65,6 +65,18 @@ export function allowedPrefixIds(weaponClass: WeaponClass, saveVersion: number):
   const rule = PREFIX_RULES.classes[weaponClass]?.find((r) => appliesTo(r, saveVersion))
   if (!rule) return new Set()
   return new Set(rule.groups.flatMap((g) => PREFIX_RULES.groups[g] ?? []))
+}
+
+/**
+ * The best modifier for an item in a save version (rules/best-prefixes.json),
+ * or undefined when it can't take one or its weapon type isn't mapped.
+ */
+export function bestPrefixFor(item: ItemRecord, saveVersion: number): number | undefined {
+  const kind = itemKind(item, saveVersion)
+  const key = kind.kind === 'weapon' ? kind.weaponClass : kind.kind === 'accessory' ? 'accessory' : undefined
+  if (!key) return undefined
+  const rule = BEST_PREFIX_RULES[key]?.find((r) => appliesTo(r, saveVersion))
+  return rule && rule.prefix <= maxPrefixId(saveVersion) ? rule.prefix : undefined
 }
 
 export type PrefixCheck =

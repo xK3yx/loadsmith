@@ -76,6 +76,8 @@ export interface ResolvedLoadout {
     flags: ResolvedFlag[]
     fullResearch: boolean
   }
+  /** Reforge everything owned to the best modifier (rules/best-prefixes.json). */
+  bestModifiers: boolean
   unsupported: { recommendation: string; reason?: string }[]
   notes?: string
 }
@@ -136,6 +138,7 @@ class Validator {
       equipment: {},
       storage: {},
       character: { flags: [], fullResearch: false },
+      bestModifiers: l.best_modifiers === true,
       unsupported: (l.unsupported ?? []).map((u) => (typeof u === 'string' ? { recommendation: u } : u)),
     }
     if (l.notes !== undefined) out.notes = l.notes
