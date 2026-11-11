@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.vite/
+.DS_Store
+*.log
+
+# Personal Terraria saves never go in the repo.
+*.plr
+*.plr.bak
+*.bak
+# Throwaway test characters are the only exception.
+!tests/fixtures/**/*.plr
