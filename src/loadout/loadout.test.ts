@@ -145,6 +145,15 @@ describe('validateLoadout', () => {
     expect(v.warnings[0]?.message).toMatch(/haven't been checked in-game/)
   })
 
+  it('puts the outdated-save message first, but still validates and applies', () => {
+    const v = validateLoadout(loadout({ sources: ['x'], weapons: ['Zenith'] }), character(279))
+    expect(v.errors).toEqual([])
+    expect(v.warnings[0]).toMatchObject({ path: 'save.version', message: expect.stringMatching(/load it in Terraria 1\.4\.5\.8/) })
+    expect(v.warnings).toHaveLength(2)
+    expect(applyLoadout(character(279), loadout({ weapons: ['Zenith'] })).ok).toBe(true)
+    expect(warningsOf({ weapons: ['Zenith'] })).toEqual([]) // current save: no message
+  })
+
   it('warns about unknown keys, version and mode mismatches', () => {
     const w = warningsOf({ sources: ['x'], game_version: '1.4.4.9', target: { mode: 'journey' }, weapons: [{ item: 'Zenith', why: 'best' }] })
     expect(w).toEqual(

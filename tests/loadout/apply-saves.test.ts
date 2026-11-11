@@ -3,7 +3,7 @@
 // where the loadout says.
 
 import { describe, expect, it } from 'vitest'
-import { itemById, itemKind, lookupItem, maxStackFor } from '../../src/data/index.ts'
+import { MAX_SUPPORTED_VERSION, itemById, itemKind, lookupItem, maxStackFor } from '../../src/data/index.ts'
 import { type PlayerCharacter, loadPlayer, parsePlayer, savePlayer, serializePlayer } from '../../src/format/index.ts'
 import { type Loadout, applyLoadout, parseLoadout, parseLoadoutText } from '../../src/loadout/index.ts'
 import { findSaves } from '../format/saves.ts'
@@ -91,6 +91,8 @@ describe.skipIf(saves.length === 0)('applyLoadout on real saves', () => {
       expect(result.preview.unsupported).toEqual([
         { recommendation: "Get the Peddler's Satchel", reason: "World upgrade; can't be set from a character file" },
       ])
+      // Saves older than the newest supported version get the "load and save in-game first" message, first.
+      expect(result.preview.warnings[0]?.path === 'save.version').toBe(before.version < MAX_SUPPORTED_VERSION)
       if (before.difficulty === 3) {
         expect(result.preview.research?.unverified).toBe(true)
         expect(result.preview.warnings.some((w) => w.path === 'character.journey_research')).toBe(true)

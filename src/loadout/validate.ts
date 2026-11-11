@@ -12,6 +12,7 @@ import {
   lookupItem,
   lookupPrefix,
   maxStackFor,
+  outdatedSaveNotice,
   saveVersionFor,
   suggest,
 } from '../data/index.ts'
@@ -130,6 +131,9 @@ class Validator {
   }
 
   run(l: Loadout): ResolvedLoadout {
+    // An outdated save gets its message before anything else.
+    const notice = outdatedSaveNotice(this.version)
+    if (notice) this.warn('save.version', notice)
     this.checkUnknownKeys(l)
     this.checkMeta(l)
 

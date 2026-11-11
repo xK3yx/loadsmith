@@ -21,6 +21,7 @@ import {
   maxPrefixId,
   maxStackFor,
   normalizeName,
+  outdatedSaveNotice,
   prefixById,
   prefixCategory,
   saveVersionFor,
@@ -344,5 +345,17 @@ describe('best modifiers', () => {
     expect(get('EmpressBlade', 326)).toBe(85)
     expect(get('AnkhShield', 326)).toBe(72)
     expect(get('SolarFlareHelmet', 326)).toBeUndefined()
+  })
+})
+
+describe('outdated save notice', () => {
+  it('asks older saves to be loaded and saved in-game first, and says nothing for current ones', () => {
+    const notice = outdatedSaveNotice(279)
+    expect(notice).toMatch(/last saved in Terraria 1\.4\.4\.9/)
+    expect(notice).toMatch(/load it in Terraria 1\.4\.5\.8/)
+    expect(notice).toMatch(/save and quit once/)
+    expect(outdatedSaveNotice(315)).toMatch(/last saved in Terraria 1\.4\.5\.2/)
+    expect(outdatedSaveNotice(326)).toBeUndefined()
+    for (const v of SUPPORTED_VERSIONS) expect(outdatedSaveNotice(v) === undefined).toBe(v === Math.max(...SUPPORTED_VERSIONS))
   })
 })
