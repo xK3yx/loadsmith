@@ -11,3 +11,7 @@ coverage/
 *.bak
 # Throwaway test characters are the only exception.
 !tests/fixtures/**/*.plr
+
+# Local test saves (personal characters). Never commit anything from here.
+tests/local/
+*.local
