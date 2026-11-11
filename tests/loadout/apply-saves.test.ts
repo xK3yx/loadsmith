@@ -27,7 +27,7 @@ function fullLoadout(p: PlayerCharacter): Loadout {
     { item: 'Rod of Harmony' },
   ]
   l.storage!.safe = { mode: 'replace', items: [{ item: 'S.D.M.G.', prefix: 'Unreal' }] }
-  // Real piggy banks can be full; "add" into a full one blocks (tested separately).
+  // Replace keeps this test predictable; add mode on a real save is tested below.
   l.storage!.piggy_bank!.mode = 'replace'
   if (p.difficulty !== 3) delete l.character!.journey_research
   return l
@@ -122,6 +122,23 @@ describe.skipIf(saves.length === 0)('applyLoadout on real saves', () => {
       const helmet = lookupItem('Solar Flare Helmet', before.version)
       expect(result.character.loadouts[0]!.armor[0]!.netId).toBe(helmet.ok && helmet.item.id)
       expect(result.character.armor).toEqual(active) // active gear (loadout 2) untouched
+      expect(await roundTrip(result.character)).toEqual(result.character)
+    })
+
+    it('add-mode storage overflows into the next space and adds up', async () => {
+      const before = await loadPlayer(save.bytes)
+      const l = parseLoadout({ schema: 'loadsmith/1', storage: { piggy_bank: { items: ['Zenith', 'Terraprisma', 'S.D.M.G.'] } } })
+      if (!l.ok) throw new Error('parse')
+      const free = [before.bank1, before.bank2, before.bank3, before.bank4].flat().filter((i) => i.netId === 0).length
+      const result = applyLoadout(before, l.loadout)
+      if (free < 3) {
+        expect(result.ok).toBe(false)
+        return
+      }
+      if (!result.ok) throw new Error(result.errors.map((e) => e.message).join('; '))
+      const piggyFree = before.bank1.filter((i) => i.netId === 0).length
+      expect(result.preview.redirected.length).toBe(Math.max(0, 3 - piggyFree))
+      expect(conservationErrors(before, result.character, result.preview)).toEqual([])
       expect(await roundTrip(result.character)).toEqual(result.character)
     })
 

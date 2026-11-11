@@ -196,11 +196,37 @@ describe('applyLoadout', () => {
     expect(!r.ok && r.errors[0]?.message).toMatch(/No room for 1x Vortex Helmet/)
   })
 
-  it('blocks adding to a full storage space in add mode, and replace clears it', () => {
+  it('puts add-mode storage items in the next space with room and lists them', () => {
     const p = character()
-    for (let i = 0; i < 40; i++) p.bank1[i] = { netId: id('Wood'), stack: 10, prefix: 0, favorited: false }
+    const wood = { netId: id('Wood'), stack: 10, prefix: 0, favorited: false }
+    for (let i = 0; i < 40; i++) p.bank1[i] = { ...wood }
+    for (let i = 0; i < 39; i++) p.bank2[i] = { ...wood }
+    const r = applied({ storage: { piggy_bank: { items: ['Zenith', 'Terraprisma'] } } }, p)
+    // Safe has one free slot, then the Defender's Forge.
+    expect(r.character.bank2[39]!.netId).toBe(id('Zenith'))
+    expect(r.character.bank3[0]!.netId).toBe(id('Terraprisma'))
+    expect(r.preview.redirected).toEqual([
+      expect.objectContaining({ wanted: 'Piggy Bank', to: 'Safe', path: 'storage.piggy_bank.items[0]' }),
+      expect.objectContaining({ wanted: 'Piggy Bank', to: "Defender's Forge", path: 'storage.piggy_bank.items[1]' }),
+    ])
+  })
+
+  it('fills the chosen space first and skips spaces in replace mode', () => {
+    const p = character()
+    for (let i = 0; i < 39; i++) p.bank1[i] = { netId: id('Wood'), stack: 10, prefix: 0, favorited: false }
+    const r = applied({ storage: { piggy_bank: { items: ['Zenith', 'Terraprisma'] }, safe: { mode: 'replace', items: [] } } }, p)
+    expect(r.character.bank1[39]!.netId).toBe(id('Zenith'))
+    expect(r.character.bank2.every((i) => i.netId === 0)).toBe(true)
+    expect(r.character.bank3[0]!.netId).toBe(id('Terraprisma'))
+    expect(r.preview.redirected.map((x) => x.item.name)).toEqual(['Terraprisma'])
+  })
+
+  it('blocks only when every storage space is full, and replace clears it', () => {
+    const p = character()
+    for (const b of [p.bank1, p.bank2, p.bank3, p.bank4]) for (let i = 0; i < 40; i++) b[i] = { netId: id('Wood'), stack: 10, prefix: 0, favorited: false }
     const add = applyLoadout(p, loadout({ storage: { piggy_bank: { items: ['Zenith'] } } }))
     expect(add.ok).toBe(false)
+    expect(!add.ok && add.errors[0]?.message).toMatch(/every storage space is full/)
     const replace = applied({ storage: { piggy_bank: { mode: 'replace', items: ['Zenith'] } } }, p)
     expect(replace.preview.removed).toHaveLength(40)
     expect(replace.character.bank1.filter((i) => i.netId !== 0)).toHaveLength(1)

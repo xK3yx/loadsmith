@@ -9,7 +9,8 @@
 //      ammo, coins and the misc equipment slots. Replaced items are collected.
 //   3. Place the replaced items: free main inventory, then piggy bank, safe,
 //      Defender's Forge, Void Vault. The player's own items go first.
-//   4. Storage contents, then "items" (merged into existing stacks first).
+//   4. Storage contents (in "add" mode, overflow goes to the next space with
+//      room), then "items" (merged into existing stacks first).
 //   5. Hotbar order, then the character section.
 
 import { type ItemRecord, fullResearch, itemById, maxStackFor, prefixById } from '../data/index.ts'
@@ -57,6 +58,16 @@ export interface RemovedItem {
   from: string
 }
 
+/** Storage items that went to another space because the chosen one was full. */
+export interface RedirectedItem {
+  item: ItemView
+  /** The storage space the loadout chose. */
+  wanted: string
+  /** Where the items went instead (may include the chosen space for part of a stack). */
+  to: string
+  path: string
+}
+
 export interface CharacterChange {
   field: string
   before: string | number | boolean
@@ -70,6 +81,8 @@ export interface Preview {
   moved: MovedItem[]
   /** Deleted by storage "replace" mode. */
   removed: RemovedItem[]
+  /** Add-mode storage items placed in the next space with room. */
+  redirected: RedirectedItem[]
   character: CharacterChange[]
   research?: { added: number; raised: number; unverified: boolean }
   unsupported: { recommendation: string; reason?: string }[]
@@ -119,6 +132,7 @@ class Applier {
       added: [],
       moved: [],
       removed: [],
+      redirected: [],
       character: [],
       unsupported: r.unsupported,
       warnings: this.warnings,
@@ -212,39 +226,62 @@ class Applier {
    * the first empty slot. Returns where it went, or null if there's no room.
    */
   private place(item: PlayerItem, emptyAreas: Area[], mergeAreas: Area[] = []): { area: Area; index: number }[] | null {
-    const record = itemById(item.netId)
-    const max = record ? maxStackFor(record).max : 1
-    let left = item.stack
     const placed: { area: Area; index: number }[] = []
+    let left = item.stack
+    for (const area of mergeAreas) left = this.mergeInto(area, item, left, placed)
+    for (const area of emptyAreas) left = this.fillEmpty(area, item, left, placed)
+    return left > 0 ? null : placed
+  }
 
-    if (max > 1) {
-      for (const area of mergeAreas) {
-        for (let i = area.start; i <= area.end && left > 0; i++) {
-          const slot = area.list[i]!
-          if (slot.netId !== item.netId || slot.prefix !== item.prefix || slot.stack >= max) continue
-          const add = Math.min(max - slot.stack, left)
-          const before = this.view(slot)
-          slot.stack += add
-          left -= add
-          this.preview.changes.push({ area: area.label, slot: i + 1, before, after: this.view(slot) })
-          placed.push({ area, index: i })
-        }
-      }
-    }
-    for (const area of emptyAreas) {
-      for (let i = area.start; i <= area.end && left > 0; i++) {
-        if (area.list[i]!.netId !== 0) continue
-        const stack = Math.min(left, max)
-        // The file stores favorites for the inventory and the Void Vault only.
-        const keepsFavorite = area.list === this.p.inventory || area.list === this.p.bank4
-        const next = { ...item, stack, favorited: item.favorited && keepsFavorite }
-        area.list[i] = next
-        left -= stack
-        this.preview.changes.push({ area: area.label, slot: i + 1, before: null, after: this.view(next) })
-        placed.push({ area, index: i })
-      }
+  /**
+   * Like place(), but finishes one area (top up its stacks, then its empty
+   * slots) before moving on to the next.
+   */
+  private placeInOrder(item: PlayerItem, areas: Area[]): { area: Area; index: number }[] | null {
+    const placed: { area: Area; index: number }[] = []
+    let left = item.stack
+    for (const area of areas) {
+      left = this.mergeInto(area, item, left, placed)
+      left = this.fillEmpty(area, item, left, placed)
     }
     return left > 0 ? null : placed
+  }
+
+  private maxStack(item: PlayerItem): number {
+    const record = itemById(item.netId)
+    return record ? maxStackFor(record).max : 1
+  }
+
+  private mergeInto(area: Area, item: PlayerItem, left: number, placed: { area: Area; index: number }[]): number {
+    const max = this.maxStack(item)
+    if (max === 1) return left
+    for (let i = area.start; i <= area.end && left > 0; i++) {
+      const slot = area.list[i]!
+      if (slot.netId !== item.netId || slot.prefix !== item.prefix || slot.stack >= max) continue
+      const add = Math.min(max - slot.stack, left)
+      const before = this.view(slot)
+      slot.stack += add
+      left -= add
+      this.preview.changes.push({ area: area.label, slot: i + 1, before, after: this.view(slot) })
+      placed.push({ area, index: i })
+    }
+    return left
+  }
+
+  private fillEmpty(area: Area, item: PlayerItem, left: number, placed: { area: Area; index: number }[]): number {
+    const max = this.maxStack(item)
+    // The file stores favorites for the inventory and the Void Vault only.
+    const keepsFavorite = area.list === this.p.inventory || area.list === this.p.bank4
+    for (let i = area.start; i <= area.end && left > 0; i++) {
+      if (area.list[i]!.netId !== 0) continue
+      const stack = Math.min(left, max)
+      const next = { ...item, stack, favorited: item.favorited && keepsFavorite }
+      area.list[i] = next
+      left -= stack
+      this.preview.changes.push({ area: area.label, slot: i + 1, before: null, after: this.view(next) })
+      placed.push({ area, index: i })
+    }
+    return left
   }
 
   private noRoom(what: string, item: PlayerItem, path?: string): void {
@@ -343,18 +380,30 @@ class Applier {
     }
   }
 
+  /**
+   * Storage contents. In "add" mode, items that don't fit in the chosen space
+   * go to the next space with room (piggy bank, safe, forge, vault order,
+   * skipping the chosen one and any space in "replace" mode), and the preview
+   * lists them. It only blocks when every space is full.
+   */
   private storage(): void {
     for (const name of STORAGE_NAMES) {
       const space = this.r.storage[name]
       if (!space) continue
       const area = this.bank(name)
+      const others = STORAGE_NAMES.filter((n) => n !== name && this.r.storage[n]?.mode !== 'replace').map((n) => this.bank(n))
       for (const e of space.items) {
-        const placed = this.place(this.make(e), [area], [area])
+        const item = this.make(e)
+        const placed = this.placeInOrder(item, space.mode === 'add' ? [area, ...others] : [area])
         if (!placed) {
-          this.noRoom(`${STORAGE_LABEL[name]} is full`, this.make(e), e.path)
+          this.noRoom(space.mode === 'add' ? 'every storage space is full' : `${STORAGE_LABEL[name]} is full`, item, e.path)
           continue
         }
-        this.preview.added.push(this.view(this.make(e))!)
+        this.preview.added.push(this.view(item)!)
+        const labels = [...new Set(placed.map((pl) => pl.area.label))]
+        if (labels.some((l) => l !== area.label)) {
+          this.preview.redirected.push({ item: this.view(item)!, wanted: area.label, to: labels.join(', '), path: e.path })
+        }
         this.favorite(e, placed)
       }
     }
