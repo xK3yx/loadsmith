@@ -1,0 +1,38 @@
+{
+  "$comment": "Modifier groups from the Terraria Wiki's Modifiers page (checked Nov 2026): 16 melee, 12 ranged, 12 magic, 14 universal, 10 common, 19 accessory, 13 summon (1.4.5), plus 84, the Terrarian's own Legendary. classes says which groups each weapon class can roll; entries with since/until apply only to those save versions. A modifier ID in the synced data that is in no group gets a warning, not a block.",
+  "maxPrefixId": [
+    { "until": 314, "max": 84 },
+    { "since": 315, "max": 97 }
+  ],
+  "groups": {
+    "melee": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 81],
+    "ranged": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 58, 82],
+    "magic": [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 52, 83],
+    "universal": [36, 37, 38, 39, 40, 41, 53, 54, 55, 56, 57, 59, 60, 61],
+    "universal-no-crit": [38, 39, 40, 41, 53, 54, 55, 56, 57],
+    "common": [42, 43, 44, 45, 46, 47, 48, 49, 50, 51],
+    "accessory": [62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80],
+    "terrarian": [84],
+    "summon": [85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]
+  },
+  "classes": {
+    "melee": [{ "groups": ["melee", "common", "universal"] }],
+    "whip": [{ "groups": ["melee", "common", "universal"] }],
+    "melee-universal": [{ "groups": ["universal"] }],
+    "terrarian": [{ "groups": ["universal", "terrarian"] }],
+    "ranged": [{ "groups": ["ranged", "common", "universal"] }],
+    "magic": [{ "groups": ["magic", "common", "universal"] }],
+    "summon": [
+      {
+        "until": 314,
+        "groups": ["magic", "common", "universal"],
+        "$comment": "Before 1.4.5 summon staffs rolled the magic pool. A real 1.4.4.9 save has staffs with Deadly (43) and Mythical (83)."
+      },
+      {
+        "since": 315,
+        "groups": ["summon", "universal-no-crit"],
+        "$comment": "1.4.5: summon set plus universal modifiers without crit. Loading the 1.4.4.9 save in 1.4.5.8 reset or rerolled exactly the staff modifiers outside this."
+      }
+    ]
+  }
+}

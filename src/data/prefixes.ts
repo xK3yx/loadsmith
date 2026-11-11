@@ -1,41 +1,31 @@
-// Modifier (prefix) lookup and eligibility.
-//
-// Categories follow the Terraria Wiki's Modifiers page (checked Nov 2026):
-// 14 universal, 10 common, 16 melee, 12 ranged, 12 magic, 13 summon (1.4.5),
-// 19 accessory, plus prefix 84, the Terrarian's own Legendary. TEdit's
-// prefixes.json has names only, so these groupings are hand-made.
+// Modifier (prefix) lookup and eligibility. The groups and per-class rules
+// live in rules/prefix-groups.json (from the Terraria Wiki's Modifiers page).
 
 import { type Suggestion, normalizeName, suggest } from './fuzzy.ts'
+import { BEST_PREFIX_RULES, PREFIX_RULES, appliesTo } from './rules/index.ts'
 import prefixesJson from './tedit/prefixes.json'
 import type { ItemRecord, PrefixRecord } from './types.ts'
-import { FIRST_145_VERSION, maxPrefixId } from './versions.ts'
-import { type WeaponClass, WEAPON_CLASSES } from './weaponClasses.ts'
+import { maxPrefixId } from './versions.ts'
+import { type WeaponClass, weaponClassOf } from './weapons.ts'
 
 export const PREFIXES: readonly PrefixRecord[] = prefixesJson as PrefixRecord[]
 
-export type PrefixCategory = 'universal' | 'common' | 'melee' | 'ranged' | 'magic' | 'summon' | 'accessory' | 'terrarian'
+/** Group name from prefix-groups.json, e.g. "melee", "accessory", "summon". */
+export type PrefixCategory = string
 
-const range = (a: number, b: number): number[] => Array.from({ length: b - a + 1 }, (_, i) => a + i)
-
-const CATEGORY_IDS: Record<PrefixCategory, number[]> = {
-  melee: [...range(1, 15), 81],
-  ranged: [...range(16, 25), 58, 82],
-  magic: [...range(26, 35), 52, 83],
-  universal: [...range(36, 41), ...range(53, 57), 59, 60, 61],
-  common: range(42, 51),
-  accessory: range(62, 80),
-  terrarian: [84],
-  summon: range(85, 97),
-}
-
-/** Universal modifiers that add crit, which summon weapons can't take in 1.4.5. */
-const CRIT_UNIVERSAL = new Set([36, 37, 59, 60, 61]) // Keen, Superior, Godly, Demonic, Zealous
+/** Groups that are subsets of another group and don't define a category. */
+const SUBSET_GROUPS = new Set(['universal-no-crit'])
 
 const categoryOf = new Map<number, PrefixCategory>()
-for (const [cat, ids] of Object.entries(CATEGORY_IDS) as [PrefixCategory, number[]][]) {
-  for (const id of ids) categoryOf.set(id, cat)
+for (const [group, ids] of Object.entries(PREFIX_RULES.groups)) {
+  if (SUBSET_GROUPS.has(group)) continue
+  for (const id of ids) {
+    if (categoryOf.has(id)) throw new Error(`prefix-groups.json: modifier ${id} is in ${categoryOf.get(id)} and ${group}`)
+    categoryOf.set(id, group)
+  }
 }
 
+/** The modifier's group, or undefined if the rule tables don't cover it yet. */
 export function prefixCategory(id: number): PrefixCategory | undefined {
   return categoryOf.get(id)
 }
@@ -61,8 +51,8 @@ export type ItemKind =
   | { kind: 'mount' }
   | { kind: 'other' }
 
-export function itemKind(item: ItemRecord): ItemKind {
-  const weaponClass = item.key ? WEAPON_CLASSES[item.key] : undefined
+export function itemKind(item: ItemRecord, saveVersion?: number): ItemKind {
+  const weaponClass = weaponClassOf(item.key, saveVersion)
   if (weaponClass) return { kind: 'weapon', weaponClass }
   if (item.accessory) return { kind: 'accessory' }
   if (item.armor) return { kind: 'armor' }
@@ -72,57 +62,56 @@ export function itemKind(item: ItemRecord): ItemKind {
 
 /** Modifier IDs a mapped weapon class can take in a save version. */
 export function allowedPrefixIds(weaponClass: WeaponClass, saveVersion: number): Set<number> {
-  const ids = (cats: PrefixCategory[]): number[] => cats.flatMap((c) => CATEGORY_IDS[c])
-  switch (weaponClass) {
-    case 'melee':
-    case 'whip':
-      return new Set(ids(['melee', 'common', 'universal']))
-    case 'melee-universal':
-      return new Set(ids(['universal']))
-    case 'terrarian':
-      return new Set(ids(['universal', 'terrarian']))
-    case 'ranged':
-      return new Set(ids(['ranged', 'common', 'universal']))
-    case 'magic':
-      return new Set(ids(['magic', 'common', 'universal']))
-    case 'summon':
-      // 1.4.5 added the summon set and limited summon weapons to universal
-      // modifiers without crit. Before 1.4.5 they rolled the magic pool
-      // (magic + common + universal). Real saves confirm both: a 1.4.4.9 save
-      // has staffs with Deadly (43) and Mythical (83), and after loading in
-      // 1.4.5.8 the game reset or rerolled exactly those modifiers.
-      return saveVersion >= FIRST_145_VERSION
-        ? new Set([...ids(['summon']), ...ids(['universal']).filter((id) => !CRIT_UNIVERSAL.has(id))])
-        : new Set(ids(['magic', 'common', 'universal']))
-  }
+  const rule = PREFIX_RULES.classes[weaponClass]?.find((r) => appliesTo(r, saveVersion))
+  if (!rule) return new Set()
+  return new Set(rule.groups.flatMap((g) => PREFIX_RULES.groups[g] ?? []))
+}
+
+/**
+ * The best modifier for an item in a save version (rules/best-prefixes.json),
+ * or undefined when it can't take one or its weapon type isn't mapped.
+ */
+export function bestPrefixFor(item: ItemRecord, saveVersion: number): number | undefined {
+  const kind = itemKind(item, saveVersion)
+  const key = kind.kind === 'weapon' ? kind.weaponClass : kind.kind === 'accessory' ? 'accessory' : undefined
+  if (!key) return undefined
+  const rule = BEST_PREFIX_RULES[key]?.find((r) => appliesTo(r, saveVersion))
+  return rule && rule.prefix <= maxPrefixId(saveVersion) ? rule.prefix : undefined
 }
 
 export type PrefixCheck =
   | { ok: true }
   /** Not allowed: blocks the download. */
   | { ok: false; severity: 'error'; reason: 'too-new' | 'not-for-item' | 'no-prefix-allowed' | 'unknown-prefix'; message: string }
-  /** Can't verify (weapon not in the class table): a warning only. */
+  /** Can't verify (weapon not in the class table, or modifier with no rule yet): a warning only. */
   | { ok: false; severity: 'warning'; reason: 'unverified'; message: string }
 
 /** Whether a modifier can go on an item in a save version. */
 export function checkPrefix(prefixId: number, item: ItemRecord, saveVersion: number): PrefixCheck {
   if (prefixId === 0) return { ok: true }
   const prefix = byId.get(prefixId)
-  const category = categoryOf.get(prefixId)
-  if (!prefix || !category) {
+  if (!prefix) {
     return { ok: false, severity: 'error', reason: 'unknown-prefix', message: `Modifier ${prefixId} doesn't exist.` }
   }
-  const limit = maxPrefixId(saveVersion)
-  if (prefixId > limit) {
+  if (prefixId > maxPrefixId(saveVersion)) {
     return {
       ok: false,
       severity: 'error',
       reason: 'too-new',
-      message: `${prefix.name} is a 1.4.5 modifier and this save is older than 1.4.5.`,
+      message: `${prefix.name} is newer than this save's version of Terraria.`,
+    }
+  }
+  const category = categoryOf.get(prefixId)
+  if (!category) {
+    return {
+      ok: false,
+      severity: 'warning',
+      reason: 'unverified',
+      message: `${prefix.name} is new and Loadsmith has no rule for it yet, so it can't check that it fits ${item.name}.`,
     }
   }
 
-  const kind = itemKind(item)
+  const kind = itemKind(item, saveVersion)
   const notFor = (): PrefixCheck => ({
     ok: false,
     severity: 'error',
@@ -168,7 +157,7 @@ export function lookupPrefix(input: string | number, saveVersion: number, item?:
   } else {
     const n = normalizeName(raw)
     const named = byName.get(n)
-    if (named && named.length > 1) [prefix, note] = pickSameName(named, item)
+    if (named && named.length > 1) [prefix, note] = pickSameName(named, item, saveVersion)
     else prefix = named?.[0] ?? byKey.get(n)
   }
 
@@ -181,10 +170,13 @@ export function lookupPrefix(input: string | number, saveVersion: number, item?:
 }
 
 /** Chooses between two modifiers that share a name, using the item. */
-function pickSameName(named: PrefixRecord[], item: ItemRecord | undefined): [PrefixRecord, string | undefined] {
-  const kind = item ? itemKind(item) : undefined
-  const cats = named.map((p) => categoryOf.get(p.id))
-  const pick = (cat: PrefixCategory): PrefixRecord | undefined => named[cats.indexOf(cat)]
+function pickSameName(
+  named: PrefixRecord[],
+  item: ItemRecord | undefined,
+  saveVersion: number,
+): [PrefixRecord, string | undefined] {
+  const kind = item ? itemKind(item, saveVersion) : undefined
+  const pick = (cat: PrefixCategory): PrefixRecord | undefined => named.find((p) => categoryOf.get(p.id) === cat)
 
   if (kind?.kind === 'accessory') {
     const acc = pick('accessory')
@@ -192,12 +184,15 @@ function pickSameName(named: PrefixRecord[], item: ItemRecord | undefined): [Pre
   }
   if (kind?.kind === 'weapon') {
     const cls = kind.weaponClass
-    if (cls === 'terrarian' && pick('terrarian')) return [pick('terrarian')!, undefined]
-    if (cls === 'ranged' && pick('ranged') && pick('common')) {
+    const terrarian = pick('terrarian')
+    if (cls === 'terrarian' && terrarian) return [terrarian, undefined]
+    const ranged = pick('ranged')
+    const common = pick('common')
+    if (cls === 'ranged' && ranged && common) {
       // Deadly exists as a ranged modifier (20) and a common one (43); both fit guns and bows.
-      return [pick('ranged')!, `Used the ranged ${named[0]!.name} (${pick('ranged')!.id}); the common one is ${pick('common')!.id}.`]
+      return [ranged, `Used the ranged ${ranged.name} (${ranged.id}); the common one is ${common.id}.`]
     }
-    const allowed = allowedPrefixIds(cls, Number.MAX_SAFE_INTEGER)
+    const allowed = allowedPrefixIds(cls, saveVersion)
     const fit = named.find((p) => allowed.has(p.id))
     if (fit) return [fit, undefined]
   }

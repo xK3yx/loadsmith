@@ -2,6 +2,7 @@
 // and modifier IDs each one knows. Item limits come from TEdit's
 // versions.json; modifier limits are ours (TEdit has none).
 
+import { PREFIX_RULES, appliesTo } from './rules/index.ts'
 import versionsJson from './tedit/versions.json'
 import type { VersionsRecord } from './types.ts'
 
@@ -38,12 +39,14 @@ export function maxItemId(saveVersion: number): number {
 }
 
 /**
- * Highest modifier (prefix) ID this save version knows. IDs 85-97 are the
- * 1.4.5 summon modifiers (Fabled ... Scraggling).
+ * Highest modifier (prefix) ID this save version knows, from
+ * rules/prefix-groups.json. IDs 85-97 are the 1.4.5 summon modifiers.
  */
 export function maxPrefixId(saveVersion: number): number {
   requireSupported(saveVersion)
-  return saveVersion >= FIRST_145_VERSION ? 97 : 84
+  const rule = PREFIX_RULES.maxPrefixId.find((r) => appliesTo(r, saveVersion))
+  if (!rule) throw new RangeError(`prefix-groups.json has no maxPrefixId for save version ${saveVersion}.`)
+  return rule.max
 }
 
 /** Game versions that write this save version, e.g. 315 -> ["1.4.5.0", "1.4.5.1", "1.4.5.2"]. */
@@ -51,6 +54,39 @@ export function gameVersionsFor(saveVersion: number): string[] {
   return Object.entries(versions.gameToSave)
     .filter(([, v]) => v === saveVersion)
     .map(([g]) => g)
+}
+
+/** The newest game version that writes this save version, e.g. 279 -> "1.4.4.9". */
+export function gameVersionName(saveVersion: number): string {
+  const names = gameVersionsFor(saveVersion)
+  return names.length > 0 ? names.sort(compareGameVersions).at(-1)! : `save version ${saveVersion}`
+}
+
+function compareGameVersions(a: string, b: string): number {
+  const pa = a.split('.').map(Number)
+  const pb = b.split('.').map(Number)
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0)
+    if (d !== 0) return d
+  }
+  return 0
+}
+
+/**
+ * For a save older than the newest supported version: tells the player to
+ * load and save the character once in the latest Terraria before editing, so
+ * the game updates the file and newer items and modifiers become available.
+ * Editing still works; the UI shows this first. Undefined for current saves.
+ */
+export function outdatedSaveNotice(saveVersion: number): string | undefined {
+  if (saveVersion >= MAX_SUPPORTED_VERSION) return undefined
+  const was = gameVersionName(saveVersion)
+  const latest = gameVersionName(MAX_SUPPORTED_VERSION)
+  return (
+    `This character was last saved in Terraria ${was}. Before editing, load it in Terraria ${latest} (or newer), ` +
+    `then save and quit once. The game then updates the file, so items and modifiers added since ${was} become available. ` +
+    `You can still edit it now, but only with what ${was} has.`
+  )
 }
 
 /** Save version for a game version string such as "1.4.5.8", or undefined. */

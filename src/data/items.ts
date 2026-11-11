@@ -1,10 +1,11 @@
 // Item lookup by English name, TEdit key or numeric ID, version-aware.
+// Name fixes (shared names, renamed items) come from rules/aliases.json.
 
-import { AMBIGUOUS_NAMES, DUPLICATE_NAME_PICKS, PRE_145_NAMES } from './aliases.ts'
 import { type Suggestion, normalizeName, suggest } from './fuzzy.ts'
+import { ALIAS_RULES } from './rules/index.ts'
 import itemsJson from './tedit/items.json'
 import type { ItemRecord } from './types.ts'
-import { FIRST_145_VERSION, maxItemId } from './versions.ts'
+import { maxItemId } from './versions.ts'
 
 export const ITEMS: readonly ItemRecord[] = itemsJson as ItemRecord[]
 
@@ -20,6 +21,8 @@ for (const item of ITEMS) {
   else byName.set(n, [item])
 }
 
+const AMBIGUOUS = new Set(ALIAS_RULES.ambiguous)
+
 export function itemById(id: number): ItemRecord | undefined {
   return byId.get(id)
 }
@@ -28,12 +31,16 @@ export function itemByKey(key: string): ItemRecord | undefined {
   return byKey.get(normalizeName(key))
 }
 
-/** Name to show for an item in a given save version (pre-1.4.5 names differ for a few items). */
+/** Old name of an item in a save version, if it was renamed after that version. */
+function oldNameIn(item: ItemRecord, saveVersion: number): string | undefined {
+  const matches = ALIAS_RULES.renamed.filter((a) => a.key === item.key && saveVersion <= a.until)
+  // The earliest rename that still applies is the name this save version used.
+  return matches.sort((a, b) => a.until - b.until)[0]?.name
+}
+
+/** Name to show for an item in a given save version (renamed items show their old name). */
 export function displayName(item: ItemRecord, saveVersion: number): string {
-  if (saveVersion < FIRST_145_VERSION) {
-    for (const legacy of Object.values(PRE_145_NAMES)) if (legacy.key === item.key) return legacy.name
-  }
-  return item.name
+  return oldNameIn(item, saveVersion) ?? item.name
 }
 
 export function itemExistsIn(id: number, saveVersion: number): boolean {
@@ -78,18 +85,19 @@ function resolve(raw: string, saveVersion: number): Resolved {
   const n = normalizeName(raw)
   if (!n) return { kind: 'none' }
 
-  if (saveVersion < FIRST_145_VERSION) {
-    const legacy = PRE_145_NAMES[n]
-    const item = legacy && itemByKey(legacy.key)
-    if (item) return { kind: 'item', item, matchedBy: 'alias' }
-  }
+  // An old name wins in saves from before the rename (1.4.4.9 "Flairon").
+  const renamed = ALIAS_RULES.renamed
+    .filter((a) => normalizeName(a.name) === n && saveVersion <= a.until)
+    .sort((a, b) => a.until - b.until)[0]
+  const renamedItem = renamed && itemByKey(renamed.key)
+  if (renamedItem) return { kind: 'item', item: renamedItem, matchedBy: 'alias' }
 
   const named = byName.get(n)
   if (named?.length === 1) return { kind: 'item', item: named[0]!, matchedBy: 'name' }
   if (named && named.length > 1) {
-    const pick = DUPLICATE_NAME_PICKS[n]
+    const pick = ALIAS_RULES.duplicatePicks[n]
     const item = pick ? itemByKey(pick) : undefined
-    if (item && !AMBIGUOUS_NAMES.has(n)) return { kind: 'item', item, matchedBy: 'alias' }
+    if (item && !AMBIGUOUS.has(n)) return { kind: 'item', item, matchedBy: 'alias' }
     return { kind: 'ambiguous', items: named }
   }
 

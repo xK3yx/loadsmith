@@ -12,6 +12,8 @@ export interface ItemRecord {
   rackable?: true
   mount?: true
   food?: true
+  /** Wings (TEdit has a wingSlot). Only one pair can be equipped at a time. */
+  wings?: true
   /** Places a tile or wall. */
   placeable?: true
 }

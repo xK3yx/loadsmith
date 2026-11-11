@@ -5,6 +5,7 @@ export { ITEMS, displayName, itemById, itemByKey, itemExistsIn, lookupItem, type
 export {
   PREFIXES,
   allowedPrefixIds,
+  bestPrefixFor,
   checkPrefix,
   itemKind,
   lookupPrefix,
@@ -16,5 +17,6 @@ export {
   type PrefixLookup,
 } from './prefixes.ts'
 export { MAX_STACK, checkStack, maxStackFor, type StackBasis, type StackCheck, type StackLimit } from './stacks.ts'
-export { WEAPON_CLASSES, type WeaponClass } from './weaponClasses.ts'
-export { THROWN_CONSUMABLES } from './thrown.ts'
+export { THROWN_CONSUMABLES, WEAPON_CLASSES, weaponClassOf, type WeaponClass } from './weapons.ts'
+export { RESEARCH_UNVERIFIED, fullResearch, researchAmount, type ResearchAmount } from './research.ts'
+export { ALIAS_RULES, appliesTo, type VersionRange } from './rules/index.ts'

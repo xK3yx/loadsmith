@@ -219,7 +219,8 @@ export function createEmptyPlayer(version: number = CurrentVersion): PlayerChara
       pantsColor: { r: 255, g: 230, b: 175 },
       shoeColor: { r: 160, g: 105, b: 60 },
     },
-    hideVisibleAccessoryBytes: [],
+    // As many bytes as the file holds for this version (see playerFile.ts).
+    hideVisibleAccessoryBytes: version >= 124 ? [0, 0] : version >= 83 ? [0] : [],
     hideMisc: 0,
     statLife: 100,
     statLifeMax: 100,

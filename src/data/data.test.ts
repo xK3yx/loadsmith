@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { DUPLICATE_NAME_PICKS, PRE_145_NAMES } from './aliases.ts'
 import {
+  ALIAS_RULES,
   ITEMS,
   PREFIXES,
   SUPPORTED_VERSIONS,
   THROWN_CONSUMABLES,
   WEAPON_CLASSES,
+  type WeaponClass,
+  allowedPrefixIds,
+  appliesTo,
+  bestPrefixFor,
   checkPrefix,
   checkStack,
   displayName,
@@ -17,9 +21,12 @@ import {
   maxPrefixId,
   maxStackFor,
   normalizeName,
+  outdatedSaveNotice,
+  prefixById,
   prefixCategory,
   saveVersionFor,
 } from './index.ts'
+import { BEST_PREFIX_RULES } from './rules/index.ts'
 import type { ItemRecord } from './types.ts'
 
 const item = (name: string): ItemRecord => {
@@ -49,8 +56,8 @@ describe('data integrity', () => {
   })
 
   it('resolves every alias to a real item', () => {
-    for (const key of Object.values(DUPLICATE_NAME_PICKS)) expect(itemByKey(key), key).toBeDefined()
-    for (const { key } of Object.values(PRE_145_NAMES)) expect(itemByKey(key), key).toBeDefined()
+    for (const key of Object.values(ALIAS_RULES.duplicatePicks)) expect(itemByKey(key), key).toBeDefined()
+    for (const { key } of ALIAS_RULES.renamed) expect(itemByKey(key), key).toBeDefined()
   })
 
   it('has a decision for every name shared by several items', () => {
@@ -310,5 +317,45 @@ describe('stacks', () => {
     expect(checkStack(item('Wooden Arrow'), 0)).toMatchObject({ ok: false, severity: 'error' })
     expect(checkStack(item('Wooden Arrow'), 1.5)).toMatchObject({ ok: false, severity: 'error' })
     expect(checkStack(item('Super Healing Potion'), 9999)).toEqual({ ok: true, stack: 9999 })
+  })
+})
+
+describe('best modifiers', () => {
+  it('every best modifier is one its type can roll, in every supported version', () => {
+    const bad: string[] = []
+    for (const v of SUPPORTED_VERSIONS) {
+      for (const [type, rules] of Object.entries(BEST_PREFIX_RULES)) {
+        const rule = rules.find((r) => appliesTo(r, v))
+        if (!rule) {
+          bad.push(`${type} @${v}: no rule`)
+          continue
+        }
+        const ok = type === 'accessory' ? prefixCategory(rule.prefix) === 'accessory' : allowedPrefixIds(type as WeaponClass, v).has(rule.prefix)
+        if (!ok || rule.prefix > maxPrefixId(v)) bad.push(`${type} @${v}: ${rule.prefix}`)
+        if (rule.name && prefixById(rule.prefix)?.name !== rule.name) bad.push(`${type}: ${rule.prefix} is not ${rule.name}`)
+      }
+    }
+    expect(bad).toEqual([])
+  })
+
+  it('picks by item type and version', () => {
+    const get = (key: string, v: number) => bestPrefixFor(itemByKey(key)!, v)
+    expect(get('Zenith', 326)).toBe(81)
+    expect(get('EmpressBlade', 279)).toBe(57)
+    expect(get('EmpressBlade', 326)).toBe(85)
+    expect(get('AnkhShield', 326)).toBe(72)
+    expect(get('SolarFlareHelmet', 326)).toBeUndefined()
+  })
+})
+
+describe('outdated save notice', () => {
+  it('asks older saves to be loaded and saved in-game first, and says nothing for current ones', () => {
+    const notice = outdatedSaveNotice(279)
+    expect(notice).toMatch(/last saved in Terraria 1\.4\.4\.9/)
+    expect(notice).toMatch(/load it in Terraria 1\.4\.5\.8/)
+    expect(notice).toMatch(/save and quit once/)
+    expect(outdatedSaveNotice(315)).toMatch(/last saved in Terraria 1\.4\.5\.2/)
+    expect(outdatedSaveNotice(326)).toBeUndefined()
+    for (const v of SUPPORTED_VERSIONS) expect(outdatedSaveNotice(v) === undefined).toBe(v === Math.max(...SUPPORTED_VERSIONS))
   })
 })
