@@ -1,0 +1,312 @@
+{
+  "schema": "loadsmith/1",
+  "game_version": "1.4.5.8",
+  "class": "magic",
+  "goal": "bosses",
+  "target": {
+    "mode": "classic",
+    "world_difficulty": "master"
+  },
+  "best_modifiers": true,
+  "armor": [
+    "Nebula Helmet",
+    "Nebula Breastplate",
+    "Nebula Leggings"
+  ],
+  "accessories": [
+    {
+      "item": "Celestial Starboard",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Soaring Insignia",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Celestial Emblem",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Sorcerer Emblem",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Celestial Cuffs",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Mana Cloak",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Mystic Arts Sash",
+      "prefix": "Menacing"
+    }
+  ],
+  "weapons": [
+    {
+      "item": "Last Prism",
+      "prefix": "Mythical",
+      "favorite": true
+    },
+    {
+      "item": "Lunar Flare",
+      "prefix": "Mythical"
+    },
+    {
+      "item": "Nebula Blaze",
+      "prefix": "Mythical"
+    }
+  ],
+  "hotbar": [
+    "Last Prism",
+    "Lunar Flare",
+    "Nebula Blaze",
+    "Super Healing Potion",
+    "Greater Mana Potion",
+    "Rod of Harmony",
+    "Shellphone"
+  ],
+  "ammo": [],
+  "coins": {
+    "platinum": 10
+  },
+  "equipment": {
+    "hook": "Lunar Hook",
+    "mount": "Cosmic Car Key",
+    "minecart": "Mechanical Cart",
+    "pet": "Bone Rattle",
+    "light_pet": "Fairy Bell"
+  },
+  "loadouts": {
+    "2": {
+      "class": "magic (defense)",
+      "armor": [
+        "Nebula Helmet",
+        "Nebula Breastplate",
+        "Nebula Leggings"
+      ],
+      "accessories": [
+        {
+          "item": "Celestial Starboard",
+          "prefix": "Menacing"
+        },
+        {
+          "item": "Ankh Shield",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Worm Scarf",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Hero Shield",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Master Ninja Gear",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Celestial Shell",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Charm of Myths",
+          "prefix": "Warding"
+        }
+      ]
+    },
+    "3": {
+      "class": "magic (exploring)",
+      "armor": [
+        "Nebula Helmet",
+        "Nebula Breastplate",
+        "Nebula Leggings"
+      ],
+      "accessories": [
+        {
+          "item": "Celestial Starboard",
+          "prefix": "Menacing"
+        },
+        {
+          "item": "Terraspark Boots",
+          "prefix": "Quick"
+        },
+        {
+          "item": "Master Ninja Gear",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Ankh Shield",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Celestial Shell",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Shiny Stone",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Charm of Myths",
+          "prefix": "Warding"
+        }
+      ]
+    }
+  },
+  "items": [
+    {
+      "item": "Super Healing Potion",
+      "stack": 99,
+      "favorite": true
+    },
+    {
+      "item": "Greater Mana Potion",
+      "stack": 99,
+      "favorite": true
+    },
+    {
+      "item": "Ironskin Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Regeneration Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Endurance Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Lifeforce Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Rage Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Wrath Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Heartreach Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Swiftness Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Magic Power Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Mana Regeneration Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Void Bag"
+    },
+    {
+      "item": "Money Trough"
+    },
+    {
+      "item": "Shellphone",
+      "favorite": true
+    },
+    {
+      "item": "Rod of Harmony",
+      "favorite": true
+    },
+    {
+      "item": "Wormhole Potion",
+      "stack": 30
+    }
+  ],
+  "storage": {
+    "piggy_bank": {
+      "mode": "add",
+      "items": [
+        {
+          "item": "Spelunker Potion",
+          "stack": 30
+        },
+        {
+          "item": "Hunter Potion",
+          "stack": 30
+        },
+        {
+          "item": "Shine Potion",
+          "stack": 30
+        },
+        {
+          "item": "Night Owl Potion",
+          "stack": 30
+        },
+        {
+          "item": "Mining Potion",
+          "stack": 30
+        },
+        {
+          "item": "Builder Potion",
+          "stack": 30
+        },
+        {
+          "item": "Gravitation Potion",
+          "stack": 30
+        },
+        {
+          "item": "Recall Potion",
+          "stack": 30
+        }
+      ]
+    },
+    "safe": {
+      "mode": "add",
+      "items": [
+        {
+          "item": "Crystal Ball"
+        }
+      ]
+    },
+    "defenders_forge": {
+      "mode": "add",
+      "items": []
+    },
+    "void_vault": {
+      "mode": "add",
+      "items": []
+    }
+  },
+  "character": {
+    "max_life": 500,
+    "max_mana": 200,
+    "demon_heart": true,
+    "minecart_upgrade": true,
+    "boosters": "all"
+  },
+  "unsupported": [
+    {
+      "recommendation": "Defeat Moon Lord and the Empress of Light in your world",
+      "reason": "Boss progress is stored in the world file, not the character."
+    },
+    {
+      "recommendation": "Buy the Peddler's Satchel for the Merchant",
+      "reason": "NPC upgrades are world progress."
+    }
+  ],
+  "notes": "Version researched: Terraria 1.4.5.8 (PC). Goal: bosses (single-target damage).\nClass setups: https://terraria.wiki.gg/wiki/Guide:Class_setups (Endgame section; the guide is still being revised for 1.4.5, so 1.4.5 item pages were checked too).\nAccessory slots: 7, for a Master world with the Demon Heart.\nWings: Celestial Starboard. https://terraria.wiki.gg/wiki/Celestial_Starboard\nBoss buff potions are in the inventory, favorited, because quick-buff (B) only uses potions in the inventory. Exploration and utility potions are in the piggy bank. https://terraria.wiki.gg/wiki/Buffs\nConvenience: Void Bag https://terraria.wiki.gg/wiki/Void_Bag, Money Trough https://terraria.wiki.gg/wiki/Money_Trough, Shellphone https://terraria.wiki.gg/wiki/Shellphone, Rod of Harmony https://terraria.wiki.gg/wiki/Rod_of_Harmony, Wormhole Potion for multiplayer https://terraria.wiki.gg/wiki/Wormhole_Potion.\nLoadout 2 is a defensive set and loadout 3 an exploring set with the same armor.\nBuff stations (placed furniture) are in the safe: place them and right-click for their buff.\nBest modifiers is on, so every weapon and accessory you own gets its best modifier: Legendary for melee and whips, Unreal for ranged, Mythical for magic, Fabled for summon staffs, Menacing for accessories. https://terraria.wiki.gg/wiki/Modifiers\nArmor: Nebula. https://terraria.wiki.gg/wiki/Nebula_armor\nLast Prism: best single-target magic weapon; Lunar Flare and Nebula Blaze as backups. https://terraria.wiki.gg/wiki/Guide:Class_setups https://terraria.wiki.gg/wiki/Last_Prism\nCelestial Emblem, Sorcerer Emblem, Celestial Cuffs, Mana Cloak: the guide's best magic accessories. https://terraria.wiki.gg/wiki/Guide:Class_setups\nMystic Arts Sash (1.4.5.7): +40 max mana, fast mana regeneration and a dodge, for mana sustain. https://terraria.wiki.gg/wiki/Mystic_Arts_Sash\nMagic Power, Mana Regeneration and the Crystal Ball: the guide's magic buffs. https://terraria.wiki.gg/wiki/Guide:Class_setups"
+}

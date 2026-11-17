@@ -1,0 +1,325 @@
+{
+  "schema": "loadsmith/1",
+  "game_version": "1.4.5.8",
+  "class": "summon",
+  "goal": "bosses",
+  "target": {
+    "mode": "classic",
+    "world_difficulty": "master"
+  },
+  "best_modifiers": true,
+  "armor": [
+    "Stardust Helmet",
+    "Stardust Plate",
+    "Stardust Leggings"
+  ],
+  "accessories": [
+    {
+      "item": "Celestial Starboard",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Soaring Insignia",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Summoner Emblem",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Papyrus Scarab",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Pygmy Necklace",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Twilight Grasp",
+      "prefix": "Menacing"
+    },
+    {
+      "item": "Ouroboros Ring",
+      "prefix": "Menacing"
+    }
+  ],
+  "weapons": [
+    {
+      "item": "Terraprisma",
+      "prefix": "Fabled",
+      "favorite": true
+    },
+    {
+      "item": "Stardust Dragon Staff",
+      "prefix": "Fabled"
+    },
+    {
+      "item": "Possession",
+      "prefix": "Legendary",
+      "favorite": true
+    },
+    {
+      "item": "Constellation",
+      "prefix": "Legendary"
+    },
+    {
+      "item": "Lunar Portal Staff",
+      "prefix": "Fabled"
+    },
+    {
+      "item": "Rainbow Crystal Staff",
+      "prefix": "Fabled"
+    }
+  ],
+  "hotbar": [
+    "Possession",
+    "Constellation",
+    "Terraprisma",
+    "Stardust Dragon Staff",
+    "Lunar Portal Staff",
+    "Rainbow Crystal Staff",
+    "Super Healing Potion",
+    "Rod of Harmony",
+    "Shellphone"
+  ],
+  "ammo": [],
+  "coins": {
+    "platinum": 10
+  },
+  "equipment": {
+    "hook": "Lunar Hook",
+    "mount": "Cosmic Car Key",
+    "minecart": "Mechanical Cart",
+    "pet": "Bone Rattle",
+    "light_pet": "Fairy Bell"
+  },
+  "loadouts": {
+    "2": {
+      "class": "summon (defense)",
+      "armor": [
+        "Stardust Helmet",
+        "Stardust Plate",
+        "Stardust Leggings"
+      ],
+      "accessories": [
+        {
+          "item": "Celestial Starboard",
+          "prefix": "Menacing"
+        },
+        {
+          "item": "Ankh Shield",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Worm Scarf",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Hero Shield",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Master Ninja Gear",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Celestial Shell",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Charm of Myths",
+          "prefix": "Warding"
+        }
+      ]
+    },
+    "3": {
+      "class": "summon (exploring)",
+      "armor": [
+        "Stardust Helmet",
+        "Stardust Plate",
+        "Stardust Leggings"
+      ],
+      "accessories": [
+        {
+          "item": "Celestial Starboard",
+          "prefix": "Menacing"
+        },
+        {
+          "item": "Terraspark Boots",
+          "prefix": "Quick"
+        },
+        {
+          "item": "Master Ninja Gear",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Ankh Shield",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Celestial Shell",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Shiny Stone",
+          "prefix": "Warding"
+        },
+        {
+          "item": "Charm of Myths",
+          "prefix": "Warding"
+        }
+      ]
+    }
+  },
+  "items": [
+    {
+      "item": "Super Healing Potion",
+      "stack": 99,
+      "favorite": true
+    },
+    {
+      "item": "Ironskin Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Regeneration Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Endurance Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Lifeforce Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Rage Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Wrath Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Heartreach Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Swiftness Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Summoning Potion",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Flask of Venom",
+      "stack": 30,
+      "favorite": true
+    },
+    {
+      "item": "Void Bag"
+    },
+    {
+      "item": "Money Trough"
+    },
+    {
+      "item": "Shellphone",
+      "favorite": true
+    },
+    {
+      "item": "Rod of Harmony",
+      "favorite": true
+    },
+    {
+      "item": "Wormhole Potion",
+      "stack": 30
+    }
+  ],
+  "storage": {
+    "piggy_bank": {
+      "mode": "add",
+      "items": [
+        {
+          "item": "Spelunker Potion",
+          "stack": 30
+        },
+        {
+          "item": "Hunter Potion",
+          "stack": 30
+        },
+        {
+          "item": "Shine Potion",
+          "stack": 30
+        },
+        {
+          "item": "Night Owl Potion",
+          "stack": 30
+        },
+        {
+          "item": "Mining Potion",
+          "stack": 30
+        },
+        {
+          "item": "Builder Potion",
+          "stack": 30
+        },
+        {
+          "item": "Gravitation Potion",
+          "stack": 30
+        },
+        {
+          "item": "Recall Potion",
+          "stack": 30
+        }
+      ]
+    },
+    "safe": {
+      "mode": "add",
+      "items": [
+        {
+          "item": "Bewitching Table"
+        },
+        {
+          "item": "War Table"
+        }
+      ]
+    },
+    "defenders_forge": {
+      "mode": "add",
+      "items": []
+    },
+    "void_vault": {
+      "mode": "add",
+      "items": []
+    }
+  },
+  "character": {
+    "max_life": 500,
+    "max_mana": 200,
+    "demon_heart": true,
+    "minecart_upgrade": true,
+    "boosters": "all"
+  },
+  "unsupported": [
+    {
+      "recommendation": "Defeat Moon Lord and the Empress of Light in your world",
+      "reason": "Boss progress is stored in the world file, not the character."
+    },
+    {
+      "recommendation": "Buy the Peddler's Satchel for the Merchant",
+      "reason": "NPC upgrades are world progress."
+    }
+  ],
+  "notes": "Version researched: Terraria 1.4.5.8 (PC). Goal: bosses (single-target damage).\nClass setups: https://terraria.wiki.gg/wiki/Guide:Class_setups (Endgame section; the guide is still being revised for 1.4.5, so 1.4.5 item pages were checked too).\nAccessory slots: 7, for a Master world with the Demon Heart.\nWings: Celestial Starboard. https://terraria.wiki.gg/wiki/Celestial_Starboard\nBoss buff potions are in the inventory, favorited, because quick-buff (B) only uses potions in the inventory. Exploration and utility potions are in the piggy bank. https://terraria.wiki.gg/wiki/Buffs\nConvenience: Void Bag https://terraria.wiki.gg/wiki/Void_Bag, Money Trough https://terraria.wiki.gg/wiki/Money_Trough, Shellphone https://terraria.wiki.gg/wiki/Shellphone, Rod of Harmony https://terraria.wiki.gg/wiki/Rod_of_Harmony, Wormhole Potion for multiplayer https://terraria.wiki.gg/wiki/Wormhole_Potion.\nLoadout 2 is a defensive set and loadout 3 an exploring set with the same armor.\nBuff stations (placed furniture) are in the safe: place them and right-click for their buff.\nBest modifiers is on, so every weapon and accessory you own gets its best modifier: Legendary for melee and whips, Unreal for ranged, Mythical for magic, Fabled for summon staffs, Menacing for accessories. https://terraria.wiki.gg/wiki/Modifiers\nArmor: Stardust. https://terraria.wiki.gg/wiki/Stardust_armor\nTerraprisma and Stardust Dragon Staff: the guide's best minions. Summon staffs take Fabled in 1.4.5. https://terraria.wiki.gg/wiki/Guide:Class_setups https://terraria.wiki.gg/wiki/Modifiers/Summoning\nPossession and Constellation (1.4.5 whips): the guide's minion-mixing whips. Possession's tag damage suits Terraprisma. Whips take Legendary (melee modifiers). https://terraria.wiki.gg/wiki/Guide:Class_setups https://terraria.wiki.gg/wiki/Possession https://terraria.wiki.gg/wiki/Constellation\nLunar Portal Staff and Rainbow Crystal Staff: the guide's best sentries. https://terraria.wiki.gg/wiki/Guide:Class_setups\nSummoner Emblem, Papyrus Scarab, Pygmy Necklace: the guide's minion accessories (the Papyrus Scarab replaces the Hercules Beetle and Necromantic Scroll it's crafted from). https://terraria.wiki.gg/wiki/Guide:Class_setups\nTwilight Grasp and Ouroboros Ring (1.4.5.7): the guide's whip accessories. Neither is crafted from the other, so both count. https://terraria.wiki.gg/wiki/Twilight_Grasp https://terraria.wiki.gg/wiki/Ouroboros_Ring\nSummoning Potion, Flask of Venom, Bewitching Table and War Table: the guide's summoner buffs. https://terraria.wiki.gg/wiki/Guide:Class_setups"
+}

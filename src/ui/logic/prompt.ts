@@ -49,10 +49,14 @@ const CLASS_LINES: Record<PromptClass, string> = {
   ranged: 'ranged.',
   magic: 'magic.',
   summon: 'summon.',
-  'all-rounder':
-    'all-rounder. Fill loadouts 1, 2 and 3 with three different class builds (write each one\'s class in its "class"), ' +
-    'and stock storage with weapons, ammo and consumables for all three.',
+  'all-rounder': 'all-rounder (three class builds, one per equipment loadout).',
 }
+
+const ALL_ROUNDER_RULE =
+  ' This is an all-rounder: fill loadouts 1, 2 and 3 with three different class builds (write each one\'s class in its "class"), ' +
+  "put each build's main weapon in the hotbar, and stock storage with every other class's full kit (weapons, ammo, class potions " +
+  'and buff stations, plus the armor and accessories of any class without a loadout) so the player can swap by hand.'
+const SINGLE_CLASS_RULE = ' Use loadouts 2 and 3 for a defensive set and an exploring set with the same armor.'
 
 const GOAL_LINES: Record<PromptGoal, string> = {
   bosses: 'bosses (single-target damage). This is the default.',
@@ -91,6 +95,7 @@ export function buildPrompt(c: PromptChoices, p: PlayerCharacter): string {
       ? ' Loadsmith then gives every weapon and accessory the player owns its best modifier, so you only need to name modifiers for the items you pick.'
       : '',
     JOURNEY_RULE: journey ? ', and full research with "journey_research": "full"' : '',
+    ALL_ROUNDER_RULE: c.class === 'all-rounder' ? ALL_ROUNDER_RULE : SINGLE_CLASS_RULE,
     JOURNEY_FIELD: journey ? '"journey_research": "full",\n    ' : '',
   }
   return template.replace(/\{\{([A-Z_]+)\}\}/g, (m, key: string) => values[key] ?? m)
