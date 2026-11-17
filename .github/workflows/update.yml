@@ -1,0 +1,102 @@
+# Weekly: sync TEdit's game data from master, run the checks, and open (or
+# update) one pull request describing what needs a person: new weapons with
+# no class, modifiers with no rule, renamed items, and changes to TEdit's
+# player save code since the commit src/format/ is ported from.
+#
+# Needs Settings > Actions > General > "Allow GitHub Actions to create and
+# approve pull requests". Pull requests opened with the built-in token don't
+# start other workflows, so the checks run here and their results are in the
+# pull request description.
+
+name: Weekly TEdit update
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: tedit-update
+  cancel-in-progress: false
+
+env:
+  BRANCH: update/tedit-data
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Keep a copy of the current data
+        run: |
+          mkdir -p "$RUNNER_TEMP/before"
+          cp src/data/tedit/items.json scripts/tedit-source.json "$RUNNER_TEMP/before/"
+
+      - name: Sync from TEdit master
+        run: npm run sync-data -- --ref master
+
+      - name: See whether anything changed
+        id: diff
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "TEdit's data is unchanged; no pull request needed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git status --short
+          fi
+
+      - name: Run the checks
+        id: checks
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          set +e
+          { npm run typecheck && npm run lint && npm test; } > "$RUNNER_TEMP/checks.txt" 2>&1
+          code=$?
+          tail -n 40 "$RUNNER_TEMP/checks.txt"
+          if [ $code -eq 0 ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Write the pull request description
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          npm run update-report --
+          --before "$RUNNER_TEMP/before"
+          --tests-output "$RUNNER_TEMP/checks.txt"
+          --tests-ok "${{ steps.checks.outputs.ok }}"
+          --out "$RUNNER_TEMP/body.md"
+
+      - name: Open or update the pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add -A src/data scripts/tedit-source.json
+          git commit -m "Sync game data from TEdit master"
+          git push --force origin "$BRANCH"
+          title="Update game data from TEdit"
+          if [ "${{ steps.checks.outputs.ok }}" != "true" ]; then title="$title (tests fail)"; fi
+          number=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh pr create --base main --head "$BRANCH" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          fi
+          cat "$RUNNER_TEMP/body.md" >> "$GITHUB_STEP_SUMMARY"

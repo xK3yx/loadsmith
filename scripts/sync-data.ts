@@ -45,6 +45,11 @@ interface Pin {
   repo: string
   commit: string
   date: string
+  /**
+   * The TEdit commit src/format/ was ported from. The weekly update compares
+   * TEdit's player save code against it. Only changed by hand, after porting.
+   */
+  playerCode?: string
 }
 
 function arg(name: string): string | undefined {
@@ -83,7 +88,9 @@ Microsoft Public License (MS-PL). See the repository LICENSE.
 async function main(): Promise<void> {
   const check = process.argv.includes('--check')
   const ref = arg('--ref')
-  const pin: Pin = ref ? await resolveRef(ref) : (JSON.parse(await readFile(PIN_FILE, 'utf8')) as Pin)
+  const current = JSON.parse(await readFile(PIN_FILE, 'utf8')) as Pin
+  // A new data commit keeps everything else in the pin (playerCode).
+  const pin: Pin = ref ? { ...current, ...(await resolveRef(ref)) } : current
 
   const outputs = new Map<string, string>()
   const fresh = new Map<DataFile, unknown>()

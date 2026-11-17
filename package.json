@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "sync-data": "node scripts/sync-data.ts",
-    "sync-research": "node scripts/sync-research.ts"
+    "sync-research": "node scripts/sync-research.ts",
+    "check-fixtures": "node scripts/check-fixtures.ts",
+    "update-report": "node scripts/update-report.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -33,5 +35,8 @@
     "typescript": "~7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
