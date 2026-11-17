@@ -1,5 +1,5 @@
 {
-  "$comment": "Name fixes, keyed by normalized name (lowercase letters and digits only). duplicatePicks: names TEdit gives to several items, mapped to the item a loadout almost certainly means (by TEdit key). ambiguous: shared names with no sensible default; they need an item ID. renamed: old names for saves up to and including 'until'. npm run sync-data appends to renamed automatically when an item's name changes.",
+  "$comment": "Name fixes, keyed by normalized name (lowercase letters and digits only). duplicatePicks: names TEdit gives to several items, mapped to the item a loadout almost certainly means (by TEdit key). ambiguous: shared names with no sensible default; they need an item ID. redirects: names whose only exact match is a placeholder players never hold (TEdit's ShellphoneDummy), mapped to the real item; the placeholder is also left out of the item dropdown. renamed: old names for saves up to and including 'until'. npm run sync-data appends to renamed automatically when an item's name changes.",
   "duplicatePicks": {
     "restorationpotion": "RestorationPotion",
     "seaweed": "Seaweed",
@@ -10,9 +10,13 @@
     "hallowedkey": "HallowedKey",
     "frozenkey": "FrozenKey",
     "demonaltar": "DemonAltar",
-    "crimsonaltar": "CrimsonAltar"
+    "crimsonaltar": "CrimsonAltar",
+    "constellation": "ConstellationWhip"
   },
-  "ambiguous": ["deathweedplanterbox", "strangeplant", "constellation"],
+  "redirects": {
+    "shellphone": "Shellphone"
+  },
+  "ambiguous": ["deathweedplanterbox", "strangeplant"],
   "renamed": [
     { "key": "Flairon", "name": "Flairon", "until": 314 }
   ]

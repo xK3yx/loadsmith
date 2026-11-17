@@ -1,7 +1,7 @@
 export * from './types.ts'
 export * from './versions.ts'
 export { normalizeName, similarity, suggest, type Suggestion } from './fuzzy.ts'
-export { ITEMS, displayName, itemById, itemByKey, itemExistsIn, lookupItem, type ItemLookup } from './items.ts'
+export { ITEMS, displayName, isPlaceholder, itemById, itemByKey, itemExistsIn, lookupItem, type ItemLookup } from './items.ts'
 export {
   PREFIXES,
   allowedPrefixIds,

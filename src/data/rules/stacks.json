@@ -7,7 +7,7 @@
     "GoldCoin": 100,
     "PlatinumCoin": 9999
   },
-  "stackableNamePattern": "\\b(potion|flask|arrows?|bullets?|darts?|rockets?|solution|bait|seeds?|ore|bar|fragment|dye|gel|bomb|grenade|torch|ammo|feather|scale|essence|soul|shard)\\b",
+  "stackableNamePattern": "\\b(potion|flask|arrows?|bullets?|darts?|rockets?|nukes?|solution|bait|seeds?|ore|bar|fragment|dye|gel|bomb|grenade|torch|ammo|feather|scale|essence|soul|shard)\\b",
   "safeStackable": {
     "$comment": "Treasure bags, crafting materials, medals, boss summons and permanent boosters. Exact keys, because broad name patterns would catch single items (Cell Phone, Coin Gun, Void Bag).",
     "namePatterns": [

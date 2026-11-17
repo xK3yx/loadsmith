@@ -43,6 +43,12 @@ export function displayName(item: ItemRecord, saveVersion: number): string {
   return oldNameIn(item, saveVersion) ?? item.name
 }
 
+/** Placeholder items a name redirects away from (never held by players). */
+export function isPlaceholder(item: ItemRecord): boolean {
+  const target = ALIAS_RULES.redirects[normalizeName(item.name)]
+  return target !== undefined && normalizeName(target) !== normalizeName(item.key ?? '')
+}
+
 export function itemExistsIn(id: number, saveVersion: number): boolean {
   return byId.has(id) && id <= maxItemId(saveVersion)
 }
@@ -91,6 +97,11 @@ function resolve(raw: string, saveVersion: number): Resolved {
     .sort((a, b) => a.until - b.until)[0]
   const renamedItem = renamed && itemByKey(renamed.key)
   if (renamedItem) return { kind: 'item', item: renamedItem, matchedBy: 'alias' }
+
+  // A placeholder name (TEdit's ShellphoneDummy) points at the item players actually hold.
+  const redirect = ALIAS_RULES.redirects[n]
+  const redirected = redirect ? itemByKey(redirect) : undefined
+  if (redirected) return { kind: 'item', item: redirected, matchedBy: 'alias' }
 
   const named = byName.get(n)
   if (named?.length === 1) return { kind: 'item', item: named[0]!, matchedBy: 'name' }
