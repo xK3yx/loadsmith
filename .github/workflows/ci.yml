@@ -49,8 +49,10 @@ jobs:
           grep -q 'src="/loadsmith/assets/' dist/index.html
 
       # Last, so the steps above still report when fixtures are missing.
+      # Warn-only until the fixtures are committed; then drop --warn-only.
+      # https://github.com/xK3yx/loadsmith/issues/1
       - name: Check 1.4.5.8 test fixtures
-        run: npm run check-fixtures
+        run: npm run check-fixtures -- --warn-only
 
       - name: Upload site
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

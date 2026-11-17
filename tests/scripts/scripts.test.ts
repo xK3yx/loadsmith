@@ -20,6 +20,22 @@ describe('check-fixtures', () => {
     expect(ok.lines.join('\n')).toMatch(/1\.4\.4\.9 .*\*\*not checked in CI\*\*/)
   })
 
+  it('only warns in warn-only mode, saying the round trip is not checked', () => {
+    const r = fixtureReport([], [], true)
+    expect(r.ok).toBe(true)
+    expect(r.lines[2]).toBe('**No fixtures: save round trip not checked in CI.**')
+    expect(r.lines.join('\n')).toMatch(/Missing:.*Classic/)
+    const full = fixtureReport(
+      [
+        { name: 'c.plr', version: 326, difficulty: 0 },
+        { name: 'j.plr', version: 326, difficulty: 3 },
+      ],
+      [],
+      true,
+    )
+    expect(full.lines.join('\n')).not.toContain('No fixtures')
+  })
+
   it('fails on an unreadable file and says what is missing', () => {
     const r = fixtureReport(
       [

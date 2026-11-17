@@ -19,7 +19,20 @@ export interface FixtureReport {
   lines: string[]
 }
 
-export function fixtureReport(fixtures: readonly FixtureInfo[], unreadable: readonly string[] = []): FixtureReport {
+/** Shown first when fixtures are missing and the check only warns. */
+export const WARN_ONLY_NOTE = 'No fixtures: save round trip not checked in CI.'
+
+/**
+ * warnOnly: missing fixtures are reported but don't fail the run. Temporary,
+ * until the fixtures are committed (see the GitHub issue linked in ci.yml).
+ */
+export function fixtureReport(fixtures: readonly FixtureInfo[], unreadable: readonly string[] = [], warnOnly = false): FixtureReport {
+  const report = strictReport(fixtures, unreadable)
+  if (report.ok || !warnOnly) return report
+  return { ok: true, lines: ['## Test fixtures', '', `**${WARN_ONLY_NOTE}**`, '', ...report.lines.slice(2)] }
+}
+
+function strictReport(fixtures: readonly FixtureInfo[], unreadable: readonly string[]): FixtureReport {
   const current = fixtures.filter((f) => f.version === REQUIRED_VERSION)
   const classic = current.some((f) => f.difficulty !== 3)
   const journey = current.some((f) => f.difficulty === 3)
