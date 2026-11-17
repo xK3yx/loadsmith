@@ -4,6 +4,10 @@ Upgrade your Terraria character to the best gear for the current update. Loadsmi
 
 **Use it at [xk3yx.github.io/loadsmith](https://xk3yx.github.io/loadsmith/).**
 
+![Loadsmith loading a character, giving every weapon and accessory its best modifier, then choosing options for the AI prompt](docs/demo.gif)
+
+*A throwaway demo character: "Make my gear perfect" fixes 11 bad modifiers in one click, then the prompt builder for a full AI loadout.*
+
 ## How to use it
 
 1. **Close Terraria and back up your character.** Copy your character's `.plr` file somewhere safe, like your desktop (folders are listed below).
