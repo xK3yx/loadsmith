@@ -6,6 +6,7 @@ import {
   bestPrefixFor,
   checkPrefix,
   displayName,
+  isPlaceholder,
   itemExistsIn,
   lookupItem,
   maxPrefixId,
@@ -31,7 +32,7 @@ const byVersion = new Map<number, (ItemOption & { record: ItemRecord; norm: stri
 function itemsFor(saveVersion: number) {
   let list = byVersion.get(saveVersion)
   if (!list) {
-    list = ITEMS.filter((i) => i.id > 0 && itemExistsIn(i.id, saveVersion)).map((record) => {
+    list = ITEMS.filter((i) => i.id > 0 && itemExistsIn(i.id, saveVersion) && !isPlaceholder(i)).map((record) => {
       const name = displayName(record, saveVersion)
       const unique = lookupItem(name, saveVersion)
       const value = unique.ok && unique.item.id === record.id ? name : record.id

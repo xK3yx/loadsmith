@@ -81,6 +81,7 @@ const StacksSchema = z.looseObject({
 const AliasesSchema = z.looseObject({
   duplicatePicks: z.record(z.string(), z.string().min(1)),
   ambiguous: z.array(z.string()),
+  redirects: z.record(z.string(), z.string().min(1)).default({}),
   renamed: z.array(z.looseObject({ key: z.string().min(1), name: z.string().min(1), until: version })),
 })
 

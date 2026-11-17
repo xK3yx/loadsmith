@@ -14,7 +14,9 @@ import {
   checkStack,
   displayName,
   gameVersionsFor,
+  isPlaceholder,
   itemByKey,
+  itemKind,
   lookupItem,
   lookupPrefix,
   maxItemId,
@@ -143,6 +145,24 @@ describe('lookupItem', () => {
     const r = lookupItem('Strange Plant', 326)
     expect(!r.ok && r.reason).toBe('ambiguous')
     expect(!r.ok && r.reason === 'ambiguous' && r.candidates.length).toBe(4)
+    // The 1.4.5 whip, not the painting with the same name.
+    expect(item('Constellation').key).toBe('ConstellationWhip')
+  })
+
+  it('gives the real Shellphone, not the placeholder players never hold', () => {
+    expect(item('Shellphone').key).toBe('Shellphone')
+    expect(item('Shellphone').id).toBe(5358)
+    expect(isPlaceholder(itemByKey('ShellphoneDummy')!)).toBe(true)
+    expect(isPlaceholder(itemByKey('Shellphone')!)).toBe(false)
+    expect(lookupItem(5437, 326).ok).toBe(true) // by ID it still exists
+  })
+
+  it('knows the 1.4.5 whips, only in 1.4.5 saves', () => {
+    for (const key of ['MoonLordWhip', 'ConstellationWhip', 'SlimeWhip']) {
+      expect(itemKind(itemByKey(key)!, 326)).toEqual({ kind: 'weapon', weaponClass: 'whip' })
+      expect(bestPrefixFor(itemByKey(key)!, 326)).toBe(81)
+    }
+    expect(itemKind(itemByKey('MoonLordWhip')!, 279).kind).toBe('other')
   })
 
   it('rejects items newer than the save', () => {
