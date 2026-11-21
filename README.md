@@ -1,5 +1,7 @@
 # Loadsmith
 
+[![CI](https://github.com/xK3yx/loadsmith/actions/workflows/ci.yml/badge.svg)](https://github.com/xK3yx/loadsmith/actions/workflows/ci.yml) [![Live](https://img.shields.io/badge/Live-GitHub%20Pages-6366f1?style=flat-square)](https://xk3yx.github.io/loadsmith/) ![Stack](https://img.shields.io/badge/Stack-React%20%2B%20TypeScript-10b981?style=flat-square) ![License](https://img.shields.io/badge/License-MS--PL-f59e0b?style=flat-square)
+
 Upgrade your Terraria character to the best gear for the current update. Loadsmith gives you a prompt for any AI (ChatGPT, Claude, Gemini), checks the loadout it writes, lets you edit it, and saves an upgraded copy of your character. It runs entirely in your browser: your character file never leaves your computer.
 
 **Use it at [xk3yx.github.io/loadsmith](https://xk3yx.github.io/loadsmith/).**
